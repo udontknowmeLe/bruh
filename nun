@@ -739,7 +739,7 @@ AutoFarmTab:AddButton({
   	    
 })
 
-MiscTab:AddButton({
+EspTab:AddButton({
 	Name = "Show Guns",
 	Callback = function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/hellmid122/script-0x391/main/guns"))()
@@ -749,10 +749,18 @@ MiscTab:AddButton({
 })
 
 
-EspTab:AddButton({
+MiscTab:AddButton({
 	Name = "Soon",
 	Callback = function()
-		pcall(loadstring(game:HttpGet("https://pastebin.com/raw/KGYKmYtW")))
+		--Hold CLTR and click to delete parts (you need to rejoin if you delete something wrong!! W/ <3 plemrbx<3
+local Plr = game:GetService("Players").LocalPlayer
+local Mouse = Plr:GetMouse()
+
+Mouse.Button1Down:connect(function()
+if not game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl) then return end
+if not Mouse.Target then return end
+Mouse.Target:Destroy()
+end)
 	end,
 		
   	    
