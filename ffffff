@@ -1,0 +1,7 @@
+local nigga = game.Players.LocalPlayer.Name
+if nigga == "antikupper" or
+   nigga == "0x3919" then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
+else
+game.Players.LocalPlayer:Kick("Not Whitelisted")
+end
