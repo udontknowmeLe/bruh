@@ -1,0 +1,84 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Universal Ware", "Sentinel")
+
+local Main = Window:NewTab("Main")
+local MainSection = Main:NewSection("Home")
+
+MainSection:NewButton("AimLock", "Aim Better", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/yeroscripthide/script-0x391/main/aim"))()
+end)
+
+
+MainSection:NewButton("Walk Faster", "Speed", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 23
+end)
+
+
+MainSection:NewButton("Show Guns", "Shows What They Have On", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/hellmid122/script-0x391/main/guns"))()
+end)
+
+local Esp = Window:NewTab("Esp")
+local EspSection = Esp:NewSection("Visuals")
+
+
+EspSection:NewButton("Esp Players", "Esp", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/yeroscripthide/mhm/main/esp"))()
+end)
+
+EspSection:NewButton("Esp Atms", "Tells Where Atms Are", function()
+    loadstring(game:HttpGet("https://github.com/yeroscripthide/mhm/blob/main/atm%20esp"))()
+end)
+
+local AutoFarm = Window:NewTab("AutoFarm")
+local AutoFarmSection = AutoFarm:NewSection("Farming")
+
+
+AutoFarmSection:NewButton("Press This Before Auto Farming!", "Important", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DrugScripts/sbscript/main/AF.lua'))()
+end)
+
+AutoFarmSection:NewButton("Start Box Job", "Important", function()
+     local function teleportAndHoldE(x, y, z)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    humanoidRootPart.CFrame = CFrame.new(x, y, z)
+    local virtualInputManager = game:GetService("VirtualInputManager")
+    virtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    wait(5)
+    virtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    end
+    teleportAndHoldE(-579.7178344726562, 3.5371451377868652, -71.9795913696289)
+     
+end)
+
+AutoFarmSection:NewButton("Box Auto Farm", "Farm", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DrugScripts/sbscript/main/box.lua'))()
+end)
+
+AutoFarmSection:NewButton("Start Trash Job", "Important", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DrugScripts/sbscript/main/box.lua'))()
+end)
+
+
+AutoFarmSection:NewButton("Trash Auto Farm", "Important", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DrugScripts/sbscript/main/trash.lua'))()
+end)
+
+
+local misc = Window:NewTab("Misc")
+local miscSection = misc:NewSection("Other")
+
+miscSection:NewButton("Instant Loot", "Loots Instant", function()
+    local ProximityPromptService = game:GetService("ProximityPromptService")
+
+if _G.hold then _G.hold:Disconnect() end
+_G.hold = ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+    prompt.HoldDuration = 0;
+end)
+
+
+   -- The function that takes place when the button is pressed
+     
+end)
