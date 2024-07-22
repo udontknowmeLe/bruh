@@ -739,7 +739,7 @@ AutoFarmTab:AddButton({
   	    
 })
 
-EspTab:AddButton({
+MiscTab:AddButton({
 	Name = "Show Guns",
 	Callback = function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/hellmid122/script-0x391/main/guns"))()
@@ -749,10 +749,10 @@ EspTab:AddButton({
 })
 
 
-MiscTab:AddButton({
-	Name = "Show Guns",
+EspTab:AddButton({
+	Name = "Soon",
 	Callback = function()
-		loadstring(game:HttpGet("https://pastebin.com/raw/KGYKmYtW")))
+		pcall(loadstring(game:HttpGet("https://pastebin.com/raw/KGYKmYtW")))
 	end,
 		
   	    
