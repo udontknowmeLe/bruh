@@ -677,7 +677,7 @@ local function MoveBackAndForth()
     while not stopScript do
         for i = 1, #coordinates do
             local coord = coordinates[i]
-            humanoid.WalkSpeed = 22.1
+            humanoid.WalkSpeed = 21
             humanoid:MoveTo(coord)
             humanoid.MoveToFinished:Wait()
 
