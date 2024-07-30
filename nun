@@ -649,7 +649,7 @@ function noclip()
 				end
 			end
 		end
-		wait(0.21) -- basic optimization
+		wait(0.22) -- basic optimization
 	end
 	Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
 end
@@ -673,7 +673,7 @@ local stopScript = false
 
 local function HoldEFor2Seconds()
     game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
-    wait(1)
+    wait(1.1)
     game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
 end
 
@@ -681,7 +681,7 @@ local function MoveBackAndForth()
     while not stopScript do
         for i = 1, #coordinates do
             local coord = coordinates[i]
-            humanoid.WalkSpeed = 22
+            humanoid.WalkSpeed = 22.1
             humanoid:MoveTo(coord)
             humanoid.MoveToFinished:Wait()
 
