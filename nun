@@ -746,18 +746,11 @@ EspTab:AddButton({
 
 
 MiscTab:AddButton({
-	Name = "Soon",
+	Name = "Silent Aim (Testing)",
 	Callback = function()
-		--Hold CLTR and click to delete parts (you need to rejoin if you delete something wrong!! W/ <3 plemrbx<3
-local Plr = game:GetService("Players").LocalPlayer
-local Mouse = Plr:GetMouse()
-
-Mouse.Button1Down:connect(function()
-if not game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl) then return end
-if not Mouse.Target then return end
-Mouse.Target:Destroy()
-end)
+	    loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/gggg/main/GIT"))()
 	end,
 		
   	    
 })
+
