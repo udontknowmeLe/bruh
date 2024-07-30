@@ -748,7 +748,7 @@ EspTab:AddButton({
 MiscTab:AddButton({
 	Name = "Silent Aim (Testing)",
 	Callback = function()
-	    loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/gggg/main/GIT"))()
+	    loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/gggg/main/huh"))()
 	end,
 		
   	    
