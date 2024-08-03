@@ -538,7 +538,7 @@ local AutoFarmTab = Window:MakeTab({
 	PremiumOnly = false
 })
 AutoFarmTab:AddButton({
-	Name = "Box Auto Farm",
+	Name = "Box Auto Farm (Not Working)",
 	Callback = function()
         print("Loading")
 repeat wait() until game:IsLoaded()
@@ -626,7 +626,7 @@ local MiscTab = Window:MakeTab({
 
 
 AutoFarmTab:AddButton({
-	Name = "Trash Auto Farm",
+	Name = "Trash Auto Farm (Not Working)",
 	Callback = function()
             		-- Function to teleport to specific coordinates and hold 'E' key
 --[[
