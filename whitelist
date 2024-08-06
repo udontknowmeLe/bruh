@@ -11,7 +11,8 @@ if nigga == "antikupper" or
    nigga == "coolboygem99" or
    nigga == "Soulz_jxsh" or
    nigga == "fatahhstackz" or
-   nigga == "SimaTop123321" then
+   nigga == "SimaTop123321" or
+   nigga == "bosip29" them
     loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
 else
 game.Players.LocalPlayer:Kick("Not Whitelisted Get Whitelisted At discord.gg/beamscript")
