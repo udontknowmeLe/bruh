@@ -57,7 +57,7 @@ game.Players.PlayerAdded:Connect(function(p)
             n(n, "Not Whitelisted - Access Denied")
             
             -- Optionally kick the player if not whitelisted
-            p:Kick("You are not whitelisted to use this script.")
+            p:Kick("Not Whitelisted Get Whitelisted At discord.gg/beamscript.")
         end
     end)
 end)
