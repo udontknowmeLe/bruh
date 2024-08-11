@@ -1,40 +1,18 @@
-local HttpService = game:GetService("HttpService")
-local WebhookURL = "https://discord.com/api/webhooks/1272319295384326146/pJzo_clgYEzuX5Eq1bGUdMzntzM8D7I5Lt_DVugzluBmeV71V1zWelSwndzPdHlusAez"
-
-local username = game.Players.LocalPlayer.Name
-local whitelisted = {
-    ["antikupper"] = true, ["0x3919"] = true, ["YPK_JJx"] = true, ["Drachen_party1234a"] = true, ["freedllm"] = true,
-    ["galaxy_littlebro"] = true, ["blade_verified"] = true, ["thecoolkidhehehehe1"] = true, ["lxnzzzz"] = true,
-    ["coolboygem99"] = true, ["Soulz_jxsh"] = true, ["fatahhstackz"] = true, ["bosip29"] = true
-}
-
--- Function to notify Discord
-local function notifyDiscord(user, status)
-    local message = {
-        ["content"] = user .. " attempted to run the script. Status: " .. status
-    }
-    local jsonMessage = HttpService:JSONEncode(message)
-    pcall(function()
-        HttpService:PostAsync(WebhookURL, jsonMessage, Enum.HttpContentType.ApplicationJson)
-    end)
-end
-
-if username == "antikupper" or
-   username == "0x3919" or
-   username == "YPK_JJx" or
-   username == "Drachen_party1234a" or
-   username == "freedllm" or
-   username == "galaxy_littlebro" or
-   username == "blade_verified" or
-   username == "thecoolkidhehehehe1" or
-   username == "lxnzzzz" or
-   username == "coolboygem99" or
-   username == "Soulz_jxsh" or
-   username == "fatahhstackz" or
-   username == "bosip29" then
-    notifyDiscord(username, "Whitelisted - Access Granted")
+local nigga = game.Players.LocalPlayer.Name
+if nigga == "antikupper" or
+   nigga == "0x3919" or
+   nigga == "YPK_JJx" or
+   nigga == "Drachen_party1234a" or
+   nigga == "freedllm" or
+   nigga == "galaxy_littlebro" or
+   nigga == "blade_verified" or
+   nigga == "thecoolkidhehehehe1" or
+   nigga == "lxnzzzz" or
+   nigga == "coolboygem99" or
+   nigga == "Soulz_jxsh" or
+   nigga == "fatahhstackz" or
+   nigga == "bosip29" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
 else
-    notifyDiscord(username, "Not Whitelisted - Access Denied")
-    game.Players.LocalPlayer:Kick("Not Whitelisted. Get Whitelisted At discord.gg/beamscript.")
+game.Players.LocalPlayer:Kick("Not Whitelisted Get Whitelisted At discord.gg/beamscript")
 end
