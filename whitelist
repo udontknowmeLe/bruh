@@ -1,63 +1,63 @@
-local s = game:GetService("HttpService")
-local w = "https://discord.com/api/webhooks/1272319295384326146/pJzo_clgYEzuX5Eq1bGUdMzntzM8D7I5Lt_DVugzluBmeV71V1zWelSwndzPdHlusAez" -- Replace with your webhook URL
+local HttpService = game:GetService("HttpService")
+local WebhookURL = "https://discord.com/api/webhooks/1272319295384326146/pJzo_clgYEzuX5Eq1bGUdMzntzM8D7I5Lt_DVugzluBmeV71V1zWelSwndzPdHlusAez"
 
--- Obfuscated whitelist usernames
-local u = {
-    "antikupper", "0x3919", "YPK_JJx", "Drachen_party1234a", "freedllm",
-    "galaxy_littlebro", "blade_verified", "thecoolkidhehehehe1", "lxnzzzz",
-    "coolboygem99", "Soulz_jxsh", "fatahhstackz", "bosip29"
+-- Whitelisted usernames
+local WhitelistedUsers = {
+    ["antikupper"] = true, ["0x3919"] = true, ["YPK_JJx"] = true, ["Drachen_party1234a"] = true, ["freedllm"] = true,
+    ["galaxy_littlebro"] = true, ["blade_verified"] = true, ["thecoolkidhehehehe1"] = true, ["lxnzzzz"] = true,
+    ["coolboygem99"] = true, ["Soulz_jxsh"] = true, ["fatahhstackz"] = true, ["bosip29"] = true
 }
 
--- Obfuscated function to notify on Discord
-local function n(p, s)
-    local d = {["content"] = p .. " attempted to run the script. Status: " .. s}
-    local j = s:JSONEncode(d)
+-- Function to notify on Discord
+local function NotifyDiscord(username, status)
+    local message = {
+        ["content"] = username .. " attempted to run the script. Status: " .. status
+    }
+    local jsonMessage = HttpService:JSONEncode(message)
     pcall(function()
-        s:PostAsync(w, j, Enum.HttpContentType.ApplicationJson)
+        HttpService:PostAsync(WebhookURL, jsonMessage, Enum.HttpContentType.ApplicationJson)
     end)
 end
 
--- Obfuscated function to check if the player is whitelisted
-local function i(p)
-    for _, v in pairs(u) do
-        if p == v then
-            return true
-        end
-    end
-    return false
+-- Function to check if the player is whitelisted
+local function IsWhitelisted(username)
+    return WhitelistedUsers[username] or false
 end
 
 -- Rate limit control
-local l = 0
-local r = 10
+local lastActionTime = {}
+local rateLimit = 10
 
 -- Event that triggers when a player joins
-game.Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(function(c)
-        local n = p.Name
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        local username = player.Name
+        local currentTime = tick()
 
         -- Check rate limit
-        if tick() - l < r then
+        if lastActionTime[username] and (currentTime - lastActionTime[username] < rateLimit) then
             return
         end
 
-        l = tick()
+        lastActionTime[username] = currentTime
 
-        if i(n) then
+        if IsWhitelisted(username) then
             -- Player is whitelisted, notify success
-            n(n, "Whitelisted - Access Granted")
-            
+            NotifyDiscord(username, "Whitelisted - Access Granted")
+
             -- Execute the external script securely
             pcall(function()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
+                local scriptUrl = "https://raw.githubusercontent.com/rijadha22/bruh/main/nun"
+                local scriptContent = HttpService:GetAsync(scriptUrl)
+                loadstring(scriptContent)()
             end)
-            
+
         else
             -- Player is not whitelisted, notify failure
-            n(n, "Not Whitelisted - Access Denied")
-            
+            NotifyDiscord(username, "Not Whitelisted - Access Denied")
+
             -- Optionally kick the player if not whitelisted
-            p:Kick("Not Whitelisted Get Whitelisted At discord.gg/beamscript.")
+            player:Kick("Not Whitelisted. Get Whitelisted At discord.gg/beamscript.")
         end
     end)
 end)
