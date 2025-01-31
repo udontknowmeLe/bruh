@@ -12,7 +12,8 @@ if nigga == "antikupper" or
    nigga == "Soulz_jxsh" or
    nigga == "fatahhstackz" or
    nigga == "bosip29" or
-   nigga == "adilalperen75" then
+   nigga == "adilalperen75" or
+   nigga == "ufufjfjcjdjdj" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/rijadha22/bruh/main/nun"))()
 else
 game.Players.LocalPlayer:Kick("Not Whitelisted Get Whitelisted By Xferq")
