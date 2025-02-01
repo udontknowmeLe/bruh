@@ -1,783 +1,3225 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "Yero Script #hellmid0_0", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+---\\Remove fps Cap//---
+setfpscap(360)
+------//Functions//------
+-----//walkspeed bypass//------
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
 
-local MainTab = Window:MakeTab({
-	Name = "Home",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
+local lastWalkspeed = 16 
 
-OrionLib:MakeNotification({
-	Name = "Read!",
-	Content = "You Must Start Job Before Starting Auto Farm!",
-	Image = "rbxassetid://4483345998",
-	Time = 7
-})
-
-
-
-MainTab:AddButton({
-	Name = "AimLock (Q To Lock)",
-	Callback = function()
-		getgenv().OldAimPart = "HumanoidRootPart"
-		getgenv().AimPart = "Head" -- For R15 Games: {UpperTorso, LowerTorso, HumanoidRootPart, Head} | For R6 Games: {Head, Torso, HumanoidRootPart}  
-		getgenv().AimlockKey = "q"
-		getgenv().AimRadius = 30 -- How far away from someones character you want to lock on at
-		getgenv().ThirdPerson = true 
-		getgenv().FirstPerson = true
-		getgenv().TeamCheck = false -- Check if Target is on your Team (True means it wont lock onto your teamates, false is vice versa) (Set it to false if there are no teams)
-		getgenv().PredictMovement = true -- Predicts if they are moving in fast velocity (like jumping) so the aimbot will go a bit faster to match their speed 
-		getgenv().PredictionVelocity = 9.100
-		getgenv().CheckIfJumped = true
-		getgenv().Smoothness = false
-		getgenv().SmoothnessAmount = 0.2
-
-		local Players, Uis, RService, SGui = game:GetService"Players", game:GetService"UserInputService", game:GetService"RunService", game:GetService"StarterGui";
-		local Client, Mouse, Camera, CF, RNew, Vec3, Vec2 = Players.LocalPlayer, Players.LocalPlayer:GetMouse(), workspace.CurrentCamera, CFrame.new, Ray.new, Vector3.new, Vector2.new;
-		local Aimlock, MousePressed, CanNotify = true, false, false;
-		local AimlockTarget;
-		local OldPre;
-
-
-
-		getgenv().WorldToViewportPoint = function(P)
-			return Camera:WorldToViewportPoint(P)
-		end
-
-		getgenv().WorldToScreenPoint = function(P)
-			return Camera.WorldToScreenPoint(Camera, P)
-		end
-
-		getgenv().GetObscuringObjects = function(T)
-			if T and T:FindFirstChild(getgenv().AimPart) and Client and Client.Character:FindFirstChild("Head") then 
-				local RayPos = workspace:FindPartOnRay(RNew(
-					T[getgenv().AimPart].Position, Client.Character.Head.Position)
-				)
-				if RayPos then return RayPos:IsDescendantOf(T) end
-			end
-		end
-
-		getgenv().GetNearestTarget = function()
-			-- Credits to whoever made this, i didnt make it, and my own mouse2plr function kinda sucks
-			local players = {}
-			local PLAYER_HOLD  = {}
-			local DISTANCES = {}
-			for i, v in pairs(Players:GetPlayers()) do
-				if v ~= Client then
-					table.insert(players, v)
-				end
-			end
-			for i, v in pairs(players) do
-				if v.Character ~= nil then
-					local AIM = v.Character:FindFirstChild("Head")
-					if getgenv().TeamCheck == true and v.Team ~= Client.Team then
-						local DISTANCE = (v.Character:FindFirstChild("Head").Position - game.Workspace.CurrentCamera.CFrame.p).magnitude
-						local RAY = Ray.new(game.Workspace.CurrentCamera.CFrame.p, (Mouse.Hit.p - game.Workspace.CurrentCamera.CFrame.p).unit * DISTANCE)
-						local HIT,POS = game.Workspace:FindPartOnRay(RAY, game.Workspace)
-						local DIFF = math.floor((POS - AIM.Position).magnitude)
-						PLAYER_HOLD[v.Name .. i] = {}
-						PLAYER_HOLD[v.Name .. i].dist= DISTANCE
-						PLAYER_HOLD[v.Name .. i].plr = v
-						PLAYER_HOLD[v.Name .. i].diff = DIFF
-						table.insert(DISTANCES, DIFF)
-					elseif getgenv().TeamCheck == false and v.Team == Client.Team then 
-						local DISTANCE = (v.Character:FindFirstChild("Head").Position - game.Workspace.CurrentCamera.CFrame.p).magnitude
-						local RAY = Ray.new(game.Workspace.CurrentCamera.CFrame.p, (Mouse.Hit.p - game.Workspace.CurrentCamera.CFrame.p).unit * DISTANCE)
-						local HIT,POS = game.Workspace:FindPartOnRay(RAY, game.Workspace)
-						local DIFF = math.floor((POS - AIM.Position).magnitude)
-						PLAYER_HOLD[v.Name .. i] = {}
-						PLAYER_HOLD[v.Name .. i].dist= DISTANCE
-						PLAYER_HOLD[v.Name .. i].plr = v
-						PLAYER_HOLD[v.Name .. i].diff = DIFF
-						table.insert(DISTANCES, DIFF)
-					end
-				end
-			end
-
-			if unpack(DISTANCES) == nil then
-				return nil
-			end
-
-			local L_DISTANCE = math.floor(math.min(unpack(DISTANCES)))
-			if L_DISTANCE > getgenv().AimRadius then
-				return nil
-			end
-
-			for i, v in pairs(PLAYER_HOLD) do
-				if v.diff == L_DISTANCE then
-					return v.plr
-				end
-			end
-			return nil
-		end
-
-		Mouse.KeyDown:Connect(function(a)
-			if not (Uis:GetFocusedTextBox()) then 
-				if a == AimlockKey and AimlockTarget == nil then
-					pcall(function()
-						if MousePressed ~= true then MousePressed = true end 
-						local Target;Target = GetNearestTarget()
-						if Target ~= nil then 
-							AimlockTarget = Target
-						end
-					end)
-				elseif a == AimlockKey and AimlockTarget ~= nil then
-					if AimlockTarget ~= nil then AimlockTarget = nil end
-					if MousePressed ~= false then 
-						MousePressed = false 
-					end
-				end
-			end
-		end)
-
-		RService.RenderStepped:Connect(function()
-			if getgenv().ThirdPerson == true and getgenv().FirstPerson == true then 
-				if (Camera.Focus.p - Camera.CoordinateFrame.p).Magnitude > 1 or (Camera.Focus.p - Camera.CoordinateFrame.p).Magnitude <= 1 then 
-					CanNotify = true 
-				else 
-					CanNotify = false 
-				end
-			elseif getgenv().ThirdPerson == true and getgenv().FirstPerson == false then 
-				if (Camera.Focus.p - Camera.CoordinateFrame.p).Magnitude > 1 then 
-					CanNotify = true 
-				else 
-					CanNotify = false 
-				end
-			elseif getgenv().ThirdPerson == false and getgenv().FirstPerson == true then 
-				if (Camera.Focus.p - Camera.CoordinateFrame.p).Magnitude <= 1 then 
-					CanNotify = true 
-				else 
-					CanNotify = false 
-				end
-			end
-			if Aimlock == true and MousePressed == true then 
-				if AimlockTarget and AimlockTarget.Character and AimlockTarget.Character:FindFirstChild(getgenv().AimPart) then 
-					if getgenv().FirstPerson == true then
-						if CanNotify == true then
-							if getgenv().PredictMovement == true then
-								if getgenv().Smoothness == true then
-									--// The part we're going to lerp/smoothen \\--
-									local Main = CF(Camera.CFrame.p, AimlockTarget.Character[getgenv().AimPart].Position + AimlockTarget.Character[getgenv().AimPart].Velocity/PredictionVelocity)
-
-									--// Making it work \\--
-									Camera.CFrame = Camera.CFrame:Lerp(Main, getgenv().SmoothnessAmount, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut)
-								else
-									Camera.CFrame = CF(Camera.CFrame.p, AimlockTarget.Character[getgenv().AimPart].Position + AimlockTarget.Character[getgenv().AimPart].Velocity/PredictionVelocity)
-								end
-							elseif getgenv().PredictMovement == false then 
-								if getgenv().Smoothness == true then
-									--// The part we're going to lerp/smoothen \\--
-									local Main = CF(Camera.CFrame.p, AimlockTarget.Character[getgenv().AimPart].Position)
-
-									--// Making it work \\--
-									Camera.CFrame = Camera.CFrame:Lerp(Main, getgenv().SmoothnessAmount, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut)
-								else
-									Camera.CFrame = CF(Camera.CFrame.p, AimlockTarget.Character[getgenv().AimPart].Position)
-								end
-							end
-						end
-					end
-				end
-			end
-			if CheckIfJumped == true then
-				if AimlockTarget.Character.HuDDDDDDDDDDWmanoid.FloorMaterial == Enum.Material.Air then
-
-					getgenv().AimPart = "HumanoidRootPart"
-				else
-					getgenv().AimPart = getgenv().OldAimPart
-
-				end
-			end
-		end)
-	end,
-})
-
-
-MainTab:AddButton({
-	Name = "Walk Faster",
-	Callback = function()
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 23
-    -- The function that takes place when the button is pressed
-    end,
- })
-
-MainTab:AddButton({
-	Name = "Fly",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/hellmid122/script-0x391/main/yero0x"))()
-	end,
-})
-
-local EspTab = Window:MakeTab({
-	Name = "Esp",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
-EspTab:AddButton({
-	Name = "Esp Players",
-	Callback = function()
-		local Settings = {
-    Box_Color = Color3.fromRGB(255, 0, 0),
-    Tracer_Color = Color3.fromRGB(255, 0, 0),
-    Tracer_Thickness = 1,
-    Box_Thickness = 1,
-    Tracer_Origin = "Bottom", -- Middle or Bottom if FollowMouse is on this won't matter...
-    Tracer_FollowMouse = false,
-    Tracers = true
-}
-local Team_Check = {
-    TeamCheck = false, -- if TeamColor is on this won't matter...
-    Green = Color3.fromRGB(0, 255, 0),
-    Red = Color3.fromRGB(255, 0, 0)
-}
-local TeamColor = true
-
---// SEPARATION
-local player = game:GetService("Players").LocalPlayer
-local camera = game:GetService("Workspace").CurrentCamera
-local mouse = player:GetMouse()
-
-local function NewQuad(thickness, color)
-    local quad = Drawing.new("Quad")
-    quad.Visible = false
-    quad.PointA = Vector2.new(0,0)
-    quad.PointB = Vector2.new(0,0)
-    quad.PointC = Vector2.new(0,0)
-    quad.PointD = Vector2.new(0,0)
-    quad.Color = color
-    quad.Filled = false
-    quad.Thickness = thickness
-    quad.Transparency = 1
-    return quad
-end
-
-local function NewLine(thickness, color)
-    local line = Drawing.new("Line")
-    line.Visible = false
-    line.From = Vector2.new(0, 0)
-    line.To = Vector2.new(0, 0)
-    line.Color = color 
-    line.Thickness = thickness
-    line.Transparency = 1
-    return line
-end
-
-local function Visibility(state, lib)
-    for u, x in pairs(lib) do
-        x.Visible = state
+local function setWalkSpeed(speed)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = speed
     end
 end
 
-local function ToColor3(col) --Function to convert, just cuz c;
-    local r = col.r --Red value
-    local g = col.g --Green value
-    local b = col.b --Blue value
-    return Color3.new(r,g,b); --Color3 datatype, made of the RGB inputs
+local function onToggleStateWS(speed)
+    if speed ~= lastWalkspeed then
+        lastWalkspeed = speed
+        setWalkSpeed(speed)
+    end
 end
 
-local black = Color3.fromRGB(0, 0 ,0)
-local function ESP(plr)
-    local library = {
-        --//Tracer and Black Tracer(black border)
-        blacktracer = NewLine(Settings.Tracer_Thickness*2, black),
-        tracer = NewLine(Settings.Tracer_Thickness, Settings.Tracer_Color),
-        --//Box and Black Box(black border)
-        black = NewQuad(Settings.Box_Thickness*2, black),
-        box = NewQuad(Settings.Box_Thickness, Settings.Box_Color),
-        --//Bar and Green Health Bar (part that moves up/down)
-        healthbar = NewLine(3, black),
-        greenhealth = NewLine(1.5, black)
-    }
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    setWalkSpeed(lastWalkspeed)
+end)
+------//Cam Freeze//------
+local cameraLocked = false
+local originalCameraCFrame = nil
+local updateConnection = nil
 
-    local function Colorize(color)
-        for u, x in pairs(library) do
-            if x ~= library.healthbar and x ~= library.greenhealth and x ~= library.blacktracer and x ~= library.black then
-                x.Color = color
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local function lockCurrentCameraAngle()
+    if cameraLocked then
+        return
+    end
+    
+    originalCameraCFrame = Camera.CFrame
+    cameraLocked = true
+    
+    local currentRotation = Camera.CFrame - Camera.CFrame.Position
+
+    local function updateCamera()
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position) * currentRotation
+    end
+
+    updateConnection = game:GetService("RunService").RenderStepped:Connect(updateCamera)
+end
+
+local function unlockCurrentCameraAngle()
+    if not cameraLocked then
+        return
+    end
+    
+    cameraLocked = false
+    originalCameraCFrame = nil
+    
+    if updateConnection then
+        updateConnection:Disconnect()
+        updateConnection = nil
+    end
+    
+    if originalCameraCFrame then
+        Camera.CFrame = originalCameraCFrame
+    end
+end
+
+local function onToggleChangedCamFreeze(toggled)
+    if toggled then
+        lockCurrentCameraAngle()
+    else
+        unlockCurrentCameraAngle()
+    end
+end
+---\\Tween Locations//---
+local Tweenlocations = {
+    ["Gun Store 1"] = CFrame.new(206.736328125, 3.7371325492858887, -188.67916870117188),   
+    ["Gun Store 2"] = CFrame.new(-493.9350280761719, 3.8621325492858887, 360.4673156738281),
+    ["Boxing Gym"] = CFrame.new(-563.9724731445312, 3.5371451377868652, -66.1060562133789),
+    ["Garbage Job"] = CFrame.new(717.6341552734375, 3.537200450897217, 161.44554138183594),
+    ["Bank"] = CFrame.new(-56.422027587890625, 3.7371387481689453, -329.5778503417969),
+    ["Studio"] = CFrame.new(468.3650207519531, 4.112238883972168, 159.92874145507812),
+    ["Police Station"] = CFrame.new(748.6831665039062, 4.912145614624023, -255.74874877929688),
+    ["Car Shop"] = CFrame.new(730.1787109375, 3.709824562072754, 449.9476013183594),
+    ["Cosmic Cuts"] = CFrame.new(57.606021881103516, 3.7371392250061035, -64.30176544189453),
+    ["Pluto's Headwear"] = CFrame.new(-269.45611572265625, 3.8895010948181152, -333.55609130859375),
+    ["B&b (Glasses Store)"] = CFrame.new(-696.83935546875, 3.6121320724487305, -335.316162109375),
+    ["Bronx Sneaker Club"] = CFrame.new(525.310791015625, 3.487133026123047, -197.16981506347656),
+    ["Kevins Drip"] = CFrame.new(-202.83302307128906, 3.487137794494629, -59.08943557739258),
+    ["Apartments 1"] = CFrame.new(-518.384765625, 3.7872252464294434, 210.3058624267578),
+    ["Apartments 2"] = CFrame.new(-276.6080627441406, 4.362135887145996, -475.66217041015625),
+    ["Apartments 3"] = CFrame.new(215.5399627685547, 5.237135887145996, 26.223546981811523)
+}
+---\\Start Menu//---
+local library = loadstring(game:HttpGet("https://pastebin.com/raw/wNq1fHqi"))()
+local Wait = library.subs.Wait
+local Intellectual = library:CreateWindow({
+    Name = "Yero.cc | South Bronx",
+    Themeable = {
+        Image = "7059346386",
+        Info = "Made by: xferq",
+        Credit = true
+    },
+    Background = "rbxassetid://18239728064",
+    Theme = [[{
+        "__Designer.Colors.topGradient":"1C1C1C",
+        "__Designer.Colors.section":"FF008C",
+        "__Designer.Colors.hoveredOptionBottom":"FF008C",
+        "__Designer.Background.ImageAssetID":"rbxassetid://285099811",
+        "__Designer.Colors.selectedOption":"FF008C",
+        "__Designer.Colors.unselectedOption":"4D4D4D",
+        "__Designer.Files.WorkspaceFile":"Intellectual", 
+        "__Designer.Colors.unhoveredOptionTop":"1C1C1C",
+        "__Designer.Colors.outerBorder":"000000",
+        "__Designer.Background.ImageColor":"FF008C",
+        "__Designer.Colors.tabText":"FFFFFF",
+        "__Designer.Colors.elementBorder":"000000",
+        "__Designer.Background.ImageTransparency":85, 
+        "__Designer.Colors.background":"1A1A1A",
+        "__Designer.Colors.innerBorder":"1C1C1C",
+        "__Designer.Colors.bottomGradient":"1C1C1C",
+        "__Designer.Colors.sectionBackground":"1C1C1C",
+        "__Designer.Colors.hoveredOptionTop":"FF008C",
+        "__Designer.Colors.otherElementText":"FF008C",
+        "__Designer.Colors.main":"FF008C",
+        "__Designer.Colors.elementText":"FFFFFF",
+        "__Designer.Colors.unhoveredOptionBottom":"1C1C1C",
+        "__Designer.Background.UseBackgroundImage":false
+    }]]
+})
+---\\Theme Saving//---
+local themes = {
+    ["Deadpool 2"] = '{"__Designer.Colors.topGradient":"420909","__Designer.Settings.ShowHideKey":"Enum.KeyCode.End","__Designer.Colors.section":"FFFFFF","Colorpicker2":"FFFFFF","Colorpicker1":"FFFFFF","__Designer.Colors.selectedOption":"FFFFFF","__Designer.Colors.unselectedOption":"FFFFFF","__Designer.Files.WorkspaceFile":"Intellectual","Toggle1":false,"__Designer.Colors.unhoveredOptionTop":"FFFFFF","__Designer.Background.ImageColor":"1A1A2F","AASection_LagAmount":5,"__Designer.Colors.elementText":"FFFFFF","__Designer.Colors.background":"111111","__Designer.Background.ImageTransparency":0,"__Designer.Colors.bottomGradient":"202020","__Designer.Colors.hoveredOptionTop":"FFFFFF","__Designer.Colors.otherElementText":"FFFFFF","__Designer.Colors.main":"FF0000","Colorpicker3":"FFFFFF","GBSection_TweenSpeed":1,"VisSection_BoxSize":3,"AimbotSection_PredictionTime":100,"Dropdown4":"Head","__Designer.Colors.hoveredOptionBottom":"FFFFFF","NameSection_DistanceRange":5,"__Designer.Background.ImageAssetID":"rbxassetid://18239728064","__Designer.Colors.innerBorder":"361F1F","Dropdown3":"Atm 1","Textbox2":"MouseButton2","Dropdown1":"Gun Store 1","__Designer.Colors.outerBorder":"560000","FovSection_FovSize":80,"Textbox1":"","__Designer.Colors.tabText":"FFFFFF","__Designer.Colors.elementBorder":"1B1B27","__Designer.Colors.sectionBackground":"121212","Dropdown2":"Gun Store 1","NameSection_NameSize":12,"VisSection_DistanceRange":5,"AimbotSection_AimbotSensitivity":0,"Dropdown5":"Static","MainSection_Walkspeed":16,"Textbox3":"ButtonL2","__Designer.Colors.unhoveredOptionBottom":"FFFFFF","__Designer.Background.UseBackgroundImage":false}',
+    
+    ["Midnight Blues"] = '{"__Designer.Colors.topGradient":"484875","__Designer.Settings.ShowHideKey":"Enum.KeyCode.End","__Designer.Colors.section":"1A1A2F","__Designer.Colors.hoveredOptionBottom":"3B3B5C","__Designer.Background.ImageAssetID":"rbxassetid://18239728064","__Designer.Colors.innerBorder":"2A2A3D","__Designer.Colors.unselectedOption":"1A1A2F","__Designer.Files.WorkspaceFile":"Intellectual","__Designer.Colors.unhoveredOptionTop":"101026","__Designer.Colors.outerBorder":"0A0A1A","__Designer.Background.ImageColor":"1A1A2F","__Designer.Colors.tabText":"D1D1FF","__Designer.Colors.elementBorder":"0A0A1A","__Designer.Colors.background":"0A0A1A","__Designer.Colors.selectedOption":"5A5A82","__Designer.Colors.sectionBackground":"101026","__Designer.Colors.bottomGradient":"060606","__Designer.Colors.elementText":"D1D1FF","__Designer.Colors.main":"C66DFF","__Designer.Colors.otherElementText":"D1D1FF","__Designer.Colors.hoveredOptionTop":"5A5A82","__Designer.Background.ImageTransparency":0,"__Designer.Colors.unhoveredOptionBottom":"0A0A1A","__Designer.Background.UseBackgroundImage":false}',
+    
+    ["Azure Modded"] = '{"__Designer.Colors.topGradient":"1E1E1E","__Designer.Settings.ShowHideKey":"Enum.KeyCode.End","__Designer.Colors.section":"FFFFFF","__Designer.Colors.hoveredOptionBottom":"FFFFFF","__Designer.Background.ImageAssetID":"rbxassetid://18239728064","__Designer.Colors.innerBorder":"333333","__Designer.Colors.unselectedOption":"FFFFFF","__Designer.Files.WorkspaceFile":"Intellectual","__Designer.Colors.unhoveredOptionTop":"1E1E1E","__Designer.Colors.outerBorder":"000000","__Designer.Background.ImageColor":"FFFFFF","__Designer.Colors.tabText":"FFFFFF","__Designer.Colors.elementBorder":"000000","__Designer.Colors.background":"1A1A1A","__Designer.Colors.selectedOption":"FFFFFF","__Designer.Colors.sectionBackground":"1E1E1E","__Designer.Colors.bottomGradient":"1E1E1E","__Designer.Colors.elementText":"FFFFFF","__Designer.Colors.main":"FFFFFF","__Designer.Colors.otherElementText":"FFFFFF","__Designer.Colors.hoveredOptionTop":"FFFFFF","__Designer.Background.ImageTransparency":0,"__Designer.Colors.unhoveredOptionBottom":"1E1E1E","__Designer.Background.UseBackgroundImage":false}',
+    
+    ["Pink Heaven"] = '{"__Designer.Colors.topGradient":"351936","__Designer.Settings.ShowHideKey":"Enum.KeyCode.End","__Designer.Colors.section":"FFFFFF","__Designer.Colors.hoveredOptionBottom":"FFFFFF","__Designer.Background.ImageAssetID":"rbxassetid://18239728064","__Designer.Colors.innerBorder":"0F0114","__Designer.Colors.unselectedOption":"FFFFFF","__Designer.Files.WorkspaceFile":"Intellectual","__Designer.Colors.unhoveredOptionTop":"1E1E1E","__Designer.Colors.outerBorder":"430249","__Designer.Background.ImageColor":"FFFFFF","__Designer.Colors.tabText":"FFFFFF","__Designer.Colors.elementBorder":"000000","__Designer.Colors.background":"1A1A1A","__Designer.Colors.selectedOption":"FFFFFF","__Designer.Colors.sectionBackground":"1D0F1C","__Designer.Colors.bottomGradient":"81218D","__Designer.Colors.elementText":"FFFFFF","__Designer.Colors.main":"FF00FA","__Designer.Colors.otherElementText":"FFFFFF","__Designer.Colors.hoveredOptionTop":"FFFFFF","__Designer.Background.ImageTransparency":0,"__Designer.Colors.unhoveredOptionBottom":"1E1E1E","__Designer.Background.UseBackgroundImage":false}'
+}
+
+local function saveTheme(name, config)
+    local folderPath = "./Pepsi Lib/Intellectual lib Themes"
+    local fileName = name .. ".txt"
+    local filePath = folderPath .. "/" .. fileName
+
+    if not isfolder("./Pepsi Lib") then
+        makefolder("./Pepsi Lib")
+    end
+    if not isfolder("./Pepsi Lib/Intellectual lib Themes") then
+        makefolder("./Pepsi Lib/Intellectual lib Themes")
+    end
+
+    if isfile(filePath) then
+        local existingContent = readfile(filePath)
+        if existingContent == config then
+            return
+        end
+    end
+
+    writefile(filePath, config)
+end
+
+for name, config in pairs(themes) do
+    saveTheme(name, config)
+end
+------//Main Tab//------
+local MainTab = Intellectual:CreateTab({
+    Name = "Main"
+})
+local BPSection = MainTab:CreateSection({
+    Name = "|Bypasse|"
+})
+local MainSection = MainTab:CreateSection({
+    Name = "|Player|"
+})
+local InstantSection = MainTab:CreateSection({
+    Name = "Instant/Misc",
+    Side = "Left"
+})
+local LPSection = MainTab:CreateSection({
+    Name = "|Spoof Options|",
+    Side = "Right"
+})
+local TGSection = MainTab:CreateSection({
+    Name = "|Target Options|",
+    Side = "Right"
+})
+local SPSection = MainTab:CreateSection({
+    Name = "|Location & Spawnpoints|",
+    Side = "Left"
+})
+local ATMSection = MainTab:CreateSection({
+    Name = "|Atm Mods|",
+    Side = "Right"
+})
+local InstantSection = MainTab:CreateSection({
+    Name = "|Server Settings|",
+    Side = "Left"
+})
+---\\Visual Tab//---
+local VisTab = Intellectual:CreateTab({
+    Name = "Visuals"
+})
+
+local ChamsSection = VisTab:CreateSection({
+    Name = "|Player Chams|",
+    Side = "Left"
+})
+
+local BoxSection = VisTab:CreateSection({
+    Name = "|Box Esp Options|",
+    Side = "Left"
+})
+
+local NameSection = VisTab:CreateSection({
+    Name = "|Name Esp Options|",
+    Side = "Right"
+})
+---\\Autofarm Tab//---
+local AFTab = Intellectual:CreateTab({
+    Name = "Farms"
+})
+local StatsSection = AFTab:CreateSection({
+    Name = "|Auto Farm Tools|",
+    Side = "Right"
+})
+local Stats2Section = AFTab:CreateSection({
+    Name = "|AutoFarm Stats|",
+    Side = "Right"
+})
+local GBSection = AFTab:CreateSection({
+    Name = "Garbage Farm Options|",
+    Side = "Left"
+})
+local BFSection = AFTab:CreateSection({
+    Name = "Box Farm Options|",
+    Side = "Left"
+})
+local CFSection = AFTab:CreateSection({
+    Name = "|Card Farm Options|",
+    Side = "Left"
+})
+------//Aimbot//------
+local AHTab = Intellectual:CreateTab({
+    Name = "Silent Aim"
+})
+local SASection = AHTab:CreateSection({
+    Name = "|Silent Aim|"
+})
+local SAFOVSection = AHTab:CreateSection({
+    Name = "|Fov Settings|",
+    Side = "Right"
+})
+local GmSection = AHTab:CreateSection({
+    Name = "|Gun Mods|",
+    Side = "Right"
+})
+---\\Bypasses//---
+BPSection:AddLabel({
+    Text = "Use this before using [No Clip]"
+})
+BPSection:AddLabel({
+    Text = "Or [Silent Aim]"
+})
+
+BPSection:AddButton({
+    Name = "Bypass AntiCheat",
+    Callback = function()
+        for i = 1, 2 do
+            loadstring(game:HttpGet("https://pastefy.app/CZejhom2/raw"))()
+--[[    local nums = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
+    local remote1;
+    local remote1args
+    local remote2;
+    local remote2args
+    local remote3;
+    local remote3args
+    local remote4;
+    local remote4args
+    local index = 0
+    
+    for i, v in pairs(game.ReplicatedStorage:GetChildren()) do
+        for z, x in pairs(nums) do
+            if string.match(v.Name, tostring(x)) then
+                index += 1
+                if index == 1 then
+                    remote1 = v:FindFirstChildOfClass("RemoteFunction")
+                elseif index == 2 then
+                    remote2 = v:FindFirstChildOfClass("RemoteFunction")
+                elseif index == 3 then
+                    remote3 = v:FindFirstChildOfClass("RemoteFunction")
+                elseif index == 4 then
+                    remote4 = v:FindFirstChildOfClass("RemoteFunction")
+                end
+            end
+        end
+    end
+    function deepclone(table)
+        local tbl = {}
+        for i, v in pairs(table) do
+            if typeof(v) == "table" then
+                table.insert(tbl, deepclone(v))
+            else
+                table.insert(tbl, v)
+            end
+        end
+        return tbl
+    end
+    hookfunction(remote1.InvokeServer, function(args)
+        print("Found Remote1")
+        if not remote1args then
+            if typeof(args) == "table" then
+                remote1args = deepclone(args)
+            else
+                remote1args = args
+            end
+        end
+    end)
+    hookfunction(remote2.InvokeServer, function(args)
+        if not remote2args then
+            print("Found Remote2")
+            if typeof(args) == "table" then
+                remote2args = deepclone(args)
+            else
+                remote2args = args
+            end
+        end
+    end)
+    hookfunction(remote3.InvokeServer, function(args)
+        if not remote3args then
+            print("Found Remote3")
+            if typeof(args) == "table" then
+                remote3args = deepclone(args)
+            else
+                remote3args = args
+            end
+        end
+    end)
+    hookfunction(remote4.InvokeServer, function(args)
+        if not remote4args then
+            print("Found Remote4")
+            if typeof(args) == "table" then
+                remote4args = deepclone(args)
+            else
+                remote4args = args
+            end
+        end
+    end)
+    
+    task.spawn(function()
+        repeat task.wait() until remote1args
+        while task.wait(1) do
+            remote1:InvokeServer(remote1args)
+        end
+    end)
+    task.spawn(function()
+        repeat task.wait() until remote2args
+        while task.wait(1) do
+            remote2:InvokeServer(remote2args)
+        end
+    end)
+    task.spawn(function()
+        repeat task.wait() until remote3args
+        while task.wait(1) do
+            remote3:InvokeServer(remote3args)
+        end
+    end)
+    task.spawn(function()
+        repeat task.wait() until remote2args
+        while task.wait(1) do
+            remote4:InvokeServer(remote2args)
+        end
+    end)
+    getgenv().dsaofihndsavousdnvoiusd = Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
+    repeat task.wait() until remote1args or remote2args or remote3args or remote4args
+    for _,v in next, getgc(true) do
+        if type(v) == "function" then
+          name = tostring(getinfo(v).name)
+          if name == "delay" then
+                local Old;Old = hookfunction(v, function(...)
+                Args = {...}
+                if type(Args[2]) ~= "function" then
+                    Args[2] = function()
+                        return game:WaitForChild(math.random(1000000, 9e9))
+                    end
+                end
+                return Old(...)
+                end)
+        end
+            if name == "find" or name == "string.find" then
+                local new;new = hookfunction(v,function(...)
+                    if string.match(tostring(getcallingscript()),"?") then
+                        return game:WaitForChild(math.random(1000000, 9e9))
+                    end
+                    return new(...)
+                end)
+            end
+        end
+      end
+]]--
+        end
+    end
+})
+---\\Main Tab//---
+local running = false
+local walkspeed = 23
+
+MainSection:AddToggle({
+    Name = "| Walkspeed",
+    Keybind = {
+        Mode = "Toggle"
+    },
+    Callback = function(state)
+        running = state
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+
+        while running do
+            humanoid.WalkSpeed = walkspeed
+            wait(0.1) 
+        end
+
+        humanoid.WalkSpeed = 16
+    end
+})
+
+local moveLoop
+getgenv().Multiplier = 0.1
+
+MainSection:AddToggle({
+    Name = "| Faster Walkspeed",
+    Keybind = {
+        Mode = "Toggle"
+    },
+    Callback = function(state)
+        repeat
+            wait()
+        until game:IsLoaded()
+
+        local Players = game:GetService('Players')
+        local LocalPlayer = Players.LocalPlayer
+
+        repeat
+            wait()
+        until LocalPlayer.Character
+
+        local RunService = game:GetService('RunService')
+
+        if state then
+            local lastPosition = LocalPlayer.Character.HumanoidRootPart.Position
+            moveLoop = RunService.RenderStepped:Connect(function()
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = LocalPlayer.Character.HumanoidRootPart
+                    local moveDirection = LocalPlayer.Character.Humanoid.MoveDirection
+
+                    if moveDirection.Magnitude > 0 then
+                        
+                        local newPosition = rootPart.Position + (moveDirection * getgenv().Multiplier)
+
+                        rootPart.CFrame = CFrame.new(newPosition, newPosition + rootPart.CFrame.LookVector)
+                    end
+                end
+            end)
+        else
+            if moveLoop then
+                moveLoop:Disconnect()
+                moveLoop = nil
+            end
+        end
+    end
+})
+
+local noclipEnabled = false
+local noclipConnection = nil
+local originalCollideState = {}
+
+local function enableNoclip()
+    if not noclipEnabled then
+        noclipEnabled = true
+
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+
+        local function noclipStep()
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in ipairs(character:GetDescendants()) do
+                    if part:IsA('BasePart') then
+                        if originalCollideState[part] == nil then
+                            originalCollideState[part] = part.CanCollide
+                        end
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+
+        noclipConnection = game:GetService('RunService').Stepped:Connect(noclipStep)
+    end
+end
+
+local function disableNoclip()
+    if noclipEnabled then
+        noclipEnabled = false
+
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+
+        local character = game.Players.LocalPlayer.Character
+        if character then
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA('BasePart') then
+                    if originalCollideState[part] ~= nil then
+                        part.CanCollide = originalCollideState[part]
+                    end
+                end
+            end
+        end
+
+        originalCollideState = {}
+    end
+end
+
+
+MainSection:AddToggle({
+    Name = "| No Clip",
+    Keybind = {
+        Mode = "Toggle"
+    },
+    Callback = function(state)
+        if state then
+            enableNoclip()
+        else
+            disableNoclip()
+        end
+    end
+})
+
+local noclipEnabled = false
+local noclip2Connection = nil
+local originalCollideState = {}
+
+local function enableNoclip()
+    if not noclip2Enabled then
+        noclip2Enabled = true
+
+        if noclip2Connection then
+            noclip2Connection:Disconnect()
+        end
+
+        local function noclip2Step()
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in ipairs(character:GetDescendants()) do
+                    if part:IsA('BasePart') then
+                        if originalCollideState[part] == nil then
+                            originalCollideState[part] = part.CanCollide
+                        end
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+
+        noclip2Connection = game:GetService('RunService').Stepped:Connect(noclip2Step)
+    end
+end
+
+local function disableNoclip()
+    if noclip2Enabled then
+        noclip2Enabled = false
+
+        if noclip2Connection then
+            noclip2Connection:Disconnect()
+        end
+
+        local character = game.Players.LocalPlayer.Character
+        if character then
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA('BasePart') then
+                    if originalCollideState[part] ~= nil then
+                        part.CanCollide = originalCollideState[part]
+                    end
+                end
+            end
+        end
+
+        originalCollideState = {}
+    end
+end
+
+local function dashForward(distance)
+    local character = game.Players.LocalPlayer.Character
+    if character then
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local startPos = hrp.Position
+            enableNoclip()
+            hrp.CFrame = hrp.CFrame + hrp.CFrame.LookVector * distance
+            wait(0)  
+            disableNoclip()
+        end
+    end
+end
+
+MainSection:AddToggle({
+    Name = "| Teleport Foward",
+    Keybind = {
+        Mode = "Hold"
+    },
+    Callback = function(state)
+        if state then
+            dashForward(5)  
+        end
+    end
+})
+------//Instant Proximity//------
+local function onToggleChangedInstantProximity(state)
+    local function setProximityPromptHoldDuration()
+        
+        for _, descendant in pairs(workspace:GetDescendants()) do
+            
+            if descendant:IsA("ProximityPrompt") then
+                
+                descendant.HoldDuration = 0
             end
         end
     end
 
-    local function Updater()
-        local connection
-        connection = game:GetService("RunService").RenderStepped:Connect(function()
-            if plr.Character ~= nil and plr.Character:FindFirstChild("Humanoid") ~= nil and plr.Character:FindFirstChild("HumanoidRootPart") ~= nil and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Head") ~= nil then
-                local HumPos, OnScreen = camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
-                if OnScreen then
-                    local head = camera:WorldToViewportPoint(plr.Character.Head.Position)
-                    local DistanceY = math.clamp((Vector2.new(head.X, head.Y) - Vector2.new(HumPos.X, HumPos.Y)).magnitude, 2, math.huge)
-                    
-                    local function Size(item)
-                        item.PointA = Vector2.new(HumPos.X + DistanceY, HumPos.Y - DistanceY*2)
-                        item.PointB = Vector2.new(HumPos.X - DistanceY, HumPos.Y - DistanceY*2)
-                        item.PointC = Vector2.new(HumPos.X - DistanceY, HumPos.Y + DistanceY*2)
-                        item.PointD = Vector2.new(HumPos.X + DistanceY, HumPos.Y + DistanceY*2)
-                    end
-                    Size(library.box)
-                    Size(library.black)
+    if state then
+        setProximityPromptHoldDuration()
 
-                    
-
-                    --// Health Bar
-                    local d = (Vector2.new(HumPos.X - DistanceY, HumPos.Y - DistanceY*2) - Vector2.new(HumPos.X - DistanceY, HumPos.Y + DistanceY*2)).magnitude 
-                    local healthoffset = plr.Character.Humanoid.Health/plr.Character.Humanoid.MaxHealth * d
-
-                    library.greenhealth.From = Vector2.new(HumPos.X - DistanceY - 4, HumPos.Y + DistanceY*2)
-                    library.greenhealth.To = Vector2.new(HumPos.X - DistanceY - 4, HumPos.Y + DistanceY*2 - healthoffset)
-
-                    library.healthbar.From = Vector2.new(HumPos.X - DistanceY - 4, HumPos.Y + DistanceY*2)
-                    library.healthbar.To = Vector2.new(HumPos.X - DistanceY - 4, HumPos.Y - DistanceY*2)
-
-                    local green = Color3.fromRGB(0, 255, 0)
-                    local red = Color3.fromRGB(255, 0, 0)
-
-                    library.greenhealth.Color = red:lerp(green, plr.Character.Humanoid.Health/plr.Character.Humanoid.MaxHealth);
-
-                    if Team_Check.TeamCheck then
-                        if plr.TeamColor == player.TeamColor then
-                            Colorize(Team_Check.Green)
-                        else 
-                            Colorize(Team_Check.Red)
-                        end
-                    else 
-                        library.tracer.Color = Settings.Tracer_Color
-                        library.box.Color = Settings.Box_Color
-                    end
-                    if TeamColor == true then
-                        Colorize(plr.TeamColor.Color)
-                    end
-                    Visibility(true, library)
-                else 
-                    Visibility(false, library)
-                end
-            else 
-                Visibility(false, library)
-                if game.Players:FindFirstChild(plr.Name) == nil then
-                    connection:Disconnect()
-                end
+        workspace.DescendantAdded:Connect(function(descendant)
+            if descendant:IsA("ProximityPrompt") then
+                descendant.HoldDuration = 0
             end
         end)
     end
-    coroutine.wrap(Updater)()
 end
 
-for i, v in pairs(game:GetService("Players"):GetPlayers()) do
-    if v.Name ~= player.Name then
-        coroutine.wrap(ESP)(v)
+MainSection:AddToggle({
+    Name = "| Instant interact",
+    Flag = "MainSection_InstantInteract",
+    Callback = function(state)
+        onToggleChangedInstantProximity(state)
+    end
+})
+--[[
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+-- Variables
+local holeRestoreTime = 5 -- Time in seconds to restore the hole
+local shootingThroughWallsEnabled = false -- Flag to control the feature
+local partsToRestore = {} -- Table to keep track of parts being restored
+
+-- Function to check if a part is under the excluded area
+local function isExcludedPart(part)
+    local excludedFolder = Workspace:FindFirstChild("Map")
+    if excludedFolder then
+        local excludedArea = excludedFolder:FindFirstChild("Roads")
+        if excludedArea then
+            excludedArea = excludedArea:FindFirstChild("Sidewalks")
+            if excludedArea then
+                -- Check if the part is a descendant of the excluded area
+                return excludedArea:IsAncestorOf(part)
+            end
+        end
+    end
+    return false
+end
+
+-- Function to handle creating a hole in a part
+local function createHole(part)
+    if part and part:IsA("BasePart") and part.CanCollide and not partsToRestore[part] and not isExcludedPart(part) then
+        -- Save the part's properties
+        local partData = {
+            Position = part.Position,
+            Size = part.Size,
+            Anchored = part.Anchored,
+            CanCollide = part.CanCollide,
+            Transparency = part.Transparency
+        }
+        
+        -- Modify the part to simulate a hole
+        part.CanCollide = false
+        part.Transparency = 1
+        
+        -- Track the part to restore it later
+        partsToRestore[part] = partData
+        
+        -- Restore the part after the specified time
+        delay(holeRestoreTime, function()
+            if part and part.Parent and partsToRestore[part] then
+                part.CanCollide = partsToRestore[part].CanCollide
+                part.Transparency = partsToRestore[part].Transparency
+                partsToRestore[part] = nil -- Remove from table after restoration
+            end
+        end)
     end
 end
 
-game.Players.PlayerAdded:Connect(function(newplr)
-    if newplr.Name ~= player.Name then
-        coroutine.wrap(ESP)(newplr)
+-- Function to detect the specific part the player is aiming at
+local function getTargetPart()
+    local player = Players.LocalPlayer
+    local mouse = player:GetMouse()
+    local ray = workspace.CurrentCamera:ScreenPointToRay(mouse.X, mouse.Y)
+    local raycastResult = Workspace:Raycast(ray.Origin, ray.Direction * 1000) -- Adjust the range as needed
+
+    if raycastResult and raycastResult.Instance then
+        return raycastResult.Instance
+    end
+end
+
+-- Function to handle toggle state changes
+local function onToggleChangedInstantProximity(state)
+    shootingThroughWallsEnabled = state
+    print("Shoot Through Walls Toggle: " .. tostring(state))
+end
+
+-- Mouse click detection
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.UserInputType == Enum.UserInputType.MouseButton1 and shootingThroughWallsEnabled then
+        local targetPart = getTargetPart()
+        if targetPart then
+            -- Debugging output
+            print("Target Part Detected: " .. targetPart.Name)
+            createHole(targetPart)
+        else
+            print("No target part detected.")
+        end
     end
 end)
-   end,
+
+-- Add the toggle button with the provided configuration
+MainSection:AddToggle({
+    Name = "Shoot Through Walls",
+    Flag = "MainSection_ShootThroughWalls",
+    Callback = function(state)
+        onToggleChangedInstantProximity(state)
+    end
 })
-
-
-
-EspTab:AddButton({
-	Name = "Esp Atms",
-	Callback = function()
-		-- loadstring
-		local ESP = loadstring(game:HttpGet("https://kiriot22.com/releases/ESP.lua"))()
-
-		-- config
-		ESP.Players = false
-		ESP.Boxes = false
-		ESP.Names = true
-		ESP:Toggle(true)
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM5", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM1", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM12", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM2", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM15", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM3", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM13", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM4", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM14", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM5", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM11", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM6", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM10", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM7", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM9", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM8", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM1", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM9", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM2", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM10", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM3", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM11", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM4", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM12", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM7", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM13", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM8", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM14", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-
-		-- object
-		ESP:AddObjectListener(Workspace.Map.ATMS, { -- Object Path, For example: Workspace.ThisFolder
-			Name = "ATM6", --Object name inside of the path, for example: Workspace.ThisFolder.Item_1
-			CustomName = "ATM15", -- Name you want to be displayed
-			Color = Color3.fromRGB(260, 260, 260), -- Color
-			IsEnabled = "whatever" -- Any name, has to be the same as the last line: ESP.TheNameYouWant
-		})
-		ESP.whatever = true
-	end,
-})
-
-local AutoFarmTab = Window:MakeTab({
-	Name = "AutoFarm",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
-AutoFarmTab:AddButton({
-	Name = "Box Auto Farm",
-	Callback = function()
-        print("Loading")
-repeat wait() until game:IsLoaded()
-
-local ProximityPromptService = game:GetService("ProximityPromptService")
-
-if _G.hold then _G.hold:Disconnect() end
-_G.hold = ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
-    prompt.HoldDuration = 0.1;
-end)
-
+]]
+---\\MAIN TAB (VISUAL SECTION)/---
+---\\Chams//---
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local camera = game.Workspace.CurrentCamera
+local ApplylocalchamsPc1_Unique = false
+local DefaultForceFieldColor_Unique = Color3.fromRGB(255, 0, 0)
+local ForceFieldColor_Unique = DefaultForceFieldColor_Unique
 
-local truck = game.Workspace:WaitForChild("cratetruck2")
+local originalMaterials = {}
+local originalColors = {}
 
-local jobStart = game.Workspace:WaitForChild("PlaceHere")
-local startProx = jobStart:FindFirstChild("Attachment"):FindFirstChild("ProximityPrompt")
+local function applyMaterial_Unique(player)
+    local character = workspace.Characters:FindFirstChild(player.Name)
+    if character then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                
+                if not originalMaterials[part] then
+                    originalMaterials[part] = part.Material
+                    originalColors[part] = part.Color
+                end
 
-local jobEnd = truck:WaitForChild("Model"):WaitForChild("ClickBox")
-local endProx = jobEnd:FindFirstChild("ProximityPrompt")
-
-local function walkTo(humanoid: Humanoid, position: Vector3, distance)
-if not distance then distance = 10 end
-
-humanoid:MoveTo(position)
-repeat humanoid:MoveTo(position) wait(0.25) until (humanoid.Parent.PrimaryPart.Position - position).Magnitude < distance
-
-return
+                if ApplylocalchamsPc1_Unique then
+                    part.Material = Enum.Material.ForceField
+                    part.Color = ForceFieldColor_Unique
+                else
+                    part.Material = Enum.Material.Plastic
+                    part.Color = Color3.new(1, 1, 1)
+                   
+                    if originalMaterials[part] then
+                        part.Material = originalMaterials[part]
+                        part.Color = originalColors[part]
+                    end
+                end
+            end
+        end
+    end
 end
 
-local function loop(speed)
---print("Loop")
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:FindFirstChild("Humanoid")
-
---print("Running checks.")
-if not humanoid then warn("Could not find humanoid") return end
-if (character.PrimaryPart.Position - jobStart.Position).Magnitude > 15 then warn("Primary distance exceeds 15 studs") return end
-
-if speed then humanoid.WalkSpeed = 23 end
-
-walkTo(humanoid, jobStart.Position, startProx.MaxActivationDistance)
-
-camera.CameraSubject = jobStart
-repeat fireproximityprompt(startProx, 1) wait(startProx.HoldDuration+0.25) until player.Backpack:FindFirstChild("Crate")
-camera.CameraSubject = character.PrimaryPart
-player.Backpack:FindFirstChild("Crate").Parent = character
-
-if speed then humanoid.WalkSpeed = 23 end
-walkTo(humanoid, Vector3.new(-540, 4, -83), 1)
-walkTo(humanoid, jobEnd.Position - Vector3.new(0,0,5), endProx.MaxActivationDistance)
-
-camera.CameraSubject = jobEnd
-repeat fireproximityprompt(endProx, 1) wait(endProx.HoldDuration+0.25) until not character:FindFirstChild("Crate")
-camera.CameraSubject = character.PrimaryPart
-walkTo(humanoid, Vector3.new(-540, 4, -83), 1)
-
-
-humanoid.WalkSpeed = 10
+local function toggleChamsPc_Unique(state)
+    ApplylocalchamsPc1_Unique = state
+    applyMaterial_Unique(player)
 end
 
-print("Loaded")
-
-if _G.enabled then _G.enabled = not _G.enabled end
-
-_G.enabled = true
-local runSpeed = true
-while _G.enabled == true do task.wait()
-loop(runSpeed)
-end
-    -- The function that takes place when the button is pressed
-    end,
- })
-
-
-
-local MiscTab = Window:MakeTab({
-	Name = "Misc",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
+ChamsSection:AddToggle({
+    Name = "| Local Player Chams",
+    Flag = "VisSection_LocalPlayerChams",
+    Callback = toggleChamsPc_Unique
 })
 
-AutoFarmTab:AddButton({
-	Name = "Atm Auto Farm (Broken)",
-	Callback = function()
--- Function to teleport to specific coordinates and hold 'E' key
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local backpack = player.Backpack
-local coordinates = {
-    Vector3.new(698.394287109375, 3.5371994972229004, 170.7313232421875),
-    Vector3.new(729.8390502929688, 3.4121947288513184, 211.96453857421875)
+ChamsSection:AddColorpicker({
+    Name = "|Player Cham Color|",
+    Default = DefaultForceFieldColor_Unique,
+    Callback = function(NewColor, OldColor)
+        ForceFieldColor_Unique = NewColor
+        if ApplylocalchamsPc1_Unique then
+            applyMaterial_Unique(player)
+        end
+    end
+})
+---\\INSTANT/MISC SECTION (MAIN TAB)//--
+local modAdminOwnerList = {
+    ["GroupHolderCosmic"] = true,
+    ["Hal_ax"] = true,
+    ["zCxsmic"] = true,
+    ["555wick"] = true,
+    ["Skythrill9"] = true
 }
-local stopScript = false
 
-local function HoldEFor2Seconds()
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
-    wait(1)
-    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
-end
-
-local function MoveBackAndForth()
-    while not stopScript do
-        for i = 1, #coordinates do
-            local coord = coordinates[i]
-            humanoid.WalkSpeed = 22
-            humanoid:MoveTo(coord)
-            humanoid.MoveToFinished:Wait()
-
-            if stopScript then
-                return  -- Exit the function if stopScript is true
-            end
-
-            if backpack then
-                local crate = backpack:FindFirstChild("TrashBag")
-                if crate then
-                    crate.Parent = character
-                end
-            end
-
-            HoldEFor2Seconds()
+local function onPlayerAdded(player)
+    if modAdminOwnerList[player.Name] or modAdminOwnerList[tostring(player.UserId)] then
+        local localPlayer = game.Players.LocalPlayer
+        if localPlayer then
+            localPlayer:Kick("A mod/admin/owner has joined the game.")
         end
     end
 end
 
-local function OnKeyPress(input)
-    if input.KeyCode == Enum.KeyCode.F1 then
-        stopScript = true
-        humanoid.WalkSpeed = 16  -- Reset walk speed to default when stopping
+local connection 
+
+InstantSection:AddToggle({
+    Name = "| Mod Detection",
+    Flag = "InstantSection_ModDetection",
+    Callback = function(state)
+        if state then
+           connection = game.Players.PlayerAdded:Connect(onPlayerAdded)
+        else
+            if connection then
+                connection:Disconnect()
+                connection = nil
+            end
+        end
     end
+})
+
+InstantSection:AddButton({
+    Name = "Server Hop",
+    Callback = function()
+
+local PlaceID = game.PlaceId
+local AllIDs = {}
+local foundAnything = ""
+local actualHour = os.date("!*t").hour
+local Deleted = false
+local File = pcall(function()
+    AllIDs = game:GetService('HttpService'):JSONDecode(readfile("NotSameServers.json"))
+end)
+if not File then
+    table.insert(AllIDs, actualHour)
+    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
 end
 
-game:GetService("UserInputService").InputBegan:Connect(OnKeyPress)
-
-MoveBackAndForth()
- end
-}) 
-
-AutoFarmTab:AddButton({
-	Name = "Trash Auto Farm (Broken)",
-	Callback = function()
-            		-- Function to teleport to specific coordinates and hold 'E' key
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local backpack = player.Backpack
-local coordinates = {
-    Vector3.new(698.394287109375, 3.5371994972229004, 170.7313232421875),
-    Vector3.new(729.8390502929688, 3.4121947288513184, 211.96453857421875)
-}
-local stopScript = false
-
-local function HoldEFor2Seconds()
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
-    wait(1)
-    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
-end
-
-local function MoveBackAndForth()
-    while not stopScript do
-        for i = 1, #coordinates do
-            local coord = coordinates[i]
-            humanoid.WalkSpeed = 22
-            humanoid:MoveTo(coord)
-            humanoid.MoveToFinished:Wait()
-
-            if stopScript then
-                return  -- Exit the function if stopScript is true
-            end
-
-            if backpack then
-                local crate = backpack:FindFirstChild("TrashBag")
-                if crate then
-                    crate.Parent = character
+function TPReturner()
+    local Site
+    if foundAnything == "" then
+        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+    else
+        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+    end
+    local ID = ""
+    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+        foundAnything = Site.nextPageCursor
+    end
+    local num = 0
+    for i,v in pairs(Site.data) do
+        local Possible = true
+        ID = tostring(v.id)
+        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+            for _,Existing in pairs(AllIDs) do
+                if num ~= 0 then
+                    if ID == tostring(Existing) then
+                        Possible = false
+                    end
+                else
+                    if tonumber(actualHour) ~= tonumber(Existing) then
+                        local delFile = pcall(function()
+                            delfile("NotSameServers.json")
+                            AllIDs = {}
+                            table.insert(AllIDs, actualHour)
+                        end)
+                    end
                 end
+                num = num + 1
             end
-
-            HoldEFor2Seconds()
+            if Possible == true then
+                table.insert(AllIDs, ID)
+                wait()
+                pcall(function()
+                    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                    wait()
+                    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+                end)
+                wait(4)
+            end
         end
     end
 end
 
-local function OnKeyPress(input)
-    if input.KeyCode == Enum.KeyCode.F1 then
-        stopScript = true
-        humanoid.WalkSpeed = 16  -- Reset walk speed to default when stopping
+function Teleport()
+    while wait() do
+        pcall(function()
+            TPReturner()
+            if foundAnything ~= "" then
+                TPReturner()
+            end
+        end)
     end
 end
 
-game:GetService("UserInputService").InputBegan:Connect(OnKeyPress)
+Teleport()
+    end
+})
 
-MoveBackAndForth()
- end
-}) 
+InstantSection:AddButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        local ts = game:GetService("TeleportService")
+        local p = game:GetService("Players").LocalPlayer
+        ts:Teleport(game.PlaceId, p) 
+    end
+})
 
-MiscTab:AddButton({
-	Name = "Instant Loot",
-	Callback = function()
-           local ProximityPromptService = game:GetService("ProximityPromptService")
+InstantSection:AddButton({
+    Name = "Join Lowest Server",
+    Callback = function()
+        local Http = game:GetService("HttpService")
+        local TPS = game:GetService("TeleportService")
+        local Api = "https://games.roblox.com/v1/games/"
+        
+        local _place = game.PlaceId
+        local _servers = Api.._place.."/servers/Public?sortOrder=Asc&limit=100"
+        function ListServers(cursor)
+            local Raw = game:HttpGet(_servers .. ((cursor and "&cursor="..cursor) or ""))
+            return Http:JSONDecode(Raw)
+        end
+        
+        local Server, Next; repeat
+            local Servers = ListServers(Next)
+            Server = Servers.data[1]
+            Next = Servers.nextPageCursor
+        until Server
+        
+        TPS:TeleportToPlaceInstance(_place,Server.id,game.Players.LocalPlayer)
+    end
+})
 
-if _G.hold then _G.hold:Disconnect() end
-_G.hold = ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
-    prompt.HoldDuration = 0;
+InstantSection:AddButton({
+    Name = "Anti Afk",
+    Callback = function()
+        local Players = game:GetService('Players')
+        local VirtualUser = game:GetService('VirtualUser')
+        local StarterGui = game:GetService('StarterGui')
+        
+        local player = Players.LocalPlayer
+        
+        player.Idled:connect(function()
+            
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
+    end
+})
+---\\Spoof Section (Main Tab)//---
+getgenv().name = ""
+getgenv().isSpoofEnabled = false
+getgenv().isCharacterSpoofEnabled = false
+getgenv().isFriendSpoofEnabled = false
+local originalTexts = {}
+local originalNames = {}
+local Players = game:GetService("Players")
+local Plr = Players.LocalPlayer
+
+local function updateTextLabel(Value, player)
+    if getgenv().isSpoofEnabled or (getgenv().isFriendSpoofEnabled and Plr:IsFriendsWith(player.UserId)) then
+        if not originalTexts[Value] then
+            originalTexts[Value] = Value.Text
+        end
+        local has = string.find(Value.Text, player.Name)
+        if has then
+            Value.Text = Value.Text:gsub(player.Name, getgenv().name)
+        end
+    else
+        if originalTexts[Value] then
+            Value.Text = originalTexts[Value]
+            originalTexts[Value] = nil
+        end
+    end
+
+    Value:GetPropertyChangedSignal("Text"):Connect(function()
+        if getgenv().isSpoofEnabled or (getgenv().isFriendSpoofEnabled and Plr:IsFriendsWith(player.UserId)) then
+            Value.Text = Value.Text:gsub(player.Name, getgenv().name)
+        else
+            if originalTexts[Value] then
+                Value.Text = originalTexts[Value]
+                originalTexts[Value] = nil
+            end
+        end
+    end)
+end
+
+local function applyTextLabelSpoof()
+    for _, Value in next, game:GetDescendants() do 
+        if Value:IsA("TextLabel") then 
+            updateTextLabel(Value, Plr)
+            for _, friend in ipairs(Players:GetPlayers()) do
+                if friend ~= Plr and Plr:IsFriendsWith(friend.UserId) then
+                    updateTextLabel(Value, friend)
+                end
+            end
+        end
+    end
+end
+
+game.DescendantAdded:Connect(function(Value)
+    if Value:IsA("TextLabel") then 
+        updateTextLabel(Value, Plr)
+    end
 end)
 
+LPSection:AddTextbox({
+    Name = "",
+    Value = "Enter a name",
+    Callback = function(input)
+        getgenv().name = input
+        applyTextLabelSpoof()
+    end
+}) 
 
-   -- The function that takes place when the button is pressed
-   end,
+LPSection:AddToggle({
+    Name = "| Spoof User/Display Name",
+    Flag = "LPSection_SpoofUser/DisplayName",
+    Callback = function(state)
+        getgenv().isSpoofEnabled = state
+        applyTextLabelSpoof()
+    end
+})
+
+local function spoofCharacterName(player)
+    local characterNameTag = workspace.Characters:FindFirstChild(player.Name)
+    if characterNameTag and characterNameTag:FindFirstChild("Head") and characterNameTag.Head:FindFirstChild("NameTag") then
+        local mainFrame = characterNameTag.Head.NameTag:FindFirstChild("MainFrame")
+        if mainFrame and mainFrame:FindFirstChild("NameLabel") then
+            mainFrame.NameLabel.Text = getgenv().name  
+        end
+    end
+end
+
+local function applyCharacterNameSpoof()
+    if getgenv().isCharacterSpoofEnabled or getgenv().isFriendSpoofEnabled then
+        spoofCharacterName(Plr)
+        for _, friend in ipairs(Players:GetPlayers()) do
+            if friend ~= Plr and Plr:IsFriendsWith(friend.UserId) then
+                spoofCharacterName(friend)
+            end
+        end
+    end
+end
+
+LPSection:AddToggle({
+    Name = "| Spoof Overhead Name",
+    Flag = "LPSection_SpoofOverheadName",
+    Callback = function(state)
+        getgenv().isCharacterSpoofEnabled = state
+        applyCharacterNameSpoof()
+
+        Plr.CharacterAdded:Connect(function()
+            if getgenv().isCharacterSpoofEnabled then
+                wait(0.1) 
+                applyCharacterNameSpoof()
+            end
+        end)
+    end
+})
+
+LPSection:AddToggle({
+    Name = "| Spoof Friends List",
+    Flag = "LPSection_SpoofFriendsList",
+    Callback = function(state)
+        getgenv().isFriendSpoofEnabled = state
+        applyTextLabelSpoof()
+        applyCharacterNameSpoof()
+
+        if state then
+            for _, friend in ipairs(Players:GetPlayers()) do
+                if friend ~= Plr then
+                    originalNames[friend.UserId] = friend.Name
+                    updateTextLabel(friend, Plr)
+                    spoofCharacterName(friend)
+                end
+            end
+
+            Players.PlayerAdded:Connect(function(player)
+                if Plr:IsFriendsWith(player.UserId) then
+                    originalNames[player.UserId] = player.Name
+                    applyTextLabelSpoof()
+                    applyCharacterNameSpoof()
+                end
+            end)
+        else
+            for _, friend in ipairs(Players:GetPlayers()) do
+                if friend ~= Plr and originalNames[friend.UserId] then
+                    local originalName = originalNames[friend.UserId]
+                    originalTexts[friend] = nil
+                    if friend.Character and friend.Character:FindFirstChild("Head") and friend.Character.Head:FindFirstChild("NameTag") then
+                        local mainFrame = friend.Character.Head.NameTag:FindFirstChild("MainFrame")
+                        if mainFrame and mainFrame:FindFirstChild("NameLabel") then
+                            mainFrame.NameLabel.Text = originalName
+                        end
+                    end
+                    for _, Value in ipairs(friend:GetDescendants()) do
+                        if Value:IsA("TextLabel") then
+                            Value.Text = originalTexts[Value] or originalName
+                        end
+                    end
+                    originalNames[friend.UserId] = nil
+                end
+            end
+        end
+    end
+})
+---\\TARGET SECTION (MAIN TAB)//---
+local TargetName = ""
+local originalCameraSubject
+local ScreenGui
+
+local function findPlayerByName(name)
+    name = string.lower(name)
+    for _, player in pairs(game.Players:GetPlayers()) do
+        local playerName = string.lower(player.Name)
+        local displayName = player.DisplayName and string.lower(player.DisplayName) or nil
+        
+        if string.sub(playerName, 1, #name) == name or (displayName and string.sub(displayName, 1, #name) == name) then
+            return player
+        end
+    end
+    return nil
+end
+
+TGSection:AddTextbox({
+    Name = "       <-Target Name->",
+    Value = TargetName,
+    Callback = function(input)
+        local player = findPlayerByName(input)
+        TargetName = player and player.Name or ""
+    end
+})
+
+local function createInventoryGUI(playerName)
+    if ScreenGui then
+        ScreenGui:Destroy() 
+    end
+
+    ScreenGui = Instance.new("ScreenGui")
+    local Background = Instance.new("Frame")
+    local ScrollFrame = Instance.new("ScrollingFrame")
+    local TitleLabel = Instance.new("TextLabel")
+    local UIListLayout = Instance.new("UIListLayout")
+    local UIListPadding = Instance.new("UIPadding")
+    local InvLabels = {}
+
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    Background.Name = "Background"
+    Background.Parent = ScreenGui
+    Background.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
+    Background.BorderSizePixel = 2
+    Background.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    Background.Position = UDim2.new(1, -260, 0, 20)
+    Background.Size = UDim2.new(0.12, 0, 0.3, 0)
+    Background.ClipsDescendants = true
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Parent = Background
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(42, 42, 42)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(42, 42, 42))
+    }
+    gradient.Rotation = 45
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = Background
+    stroke.Color = Color3.fromRGB(0, 0, 0)
+    stroke.Thickness = 2
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    TitleLabel.Name = "TitleLabel"
+    TitleLabel.Parent = Background
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+    TitleLabel.Font = Enum.Font.SourceSansBold
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextSize = 18
+    TitleLabel.TextScaled = true
+    TitleLabel.TextWrapped = true
+    TitleLabel.TextStrokeTransparency = 0.3
+    TitleLabel.Text = "Inventory"
+
+    ScrollFrame.Parent = Background
+    ScrollFrame.Size = UDim2.new(1, -10, 0, 250)
+    ScrollFrame.Position = UDim2.new(0, 5, 0, 35)
+    ScrollFrame.ScrollBarThickness = 10
+    ScrollFrame.BackgroundTransparency = 1
+    ScrollFrame.ClipsDescendants = true
+
+    UIListLayout.Parent = ScrollFrame
+    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.Padding = UDim.new(0, 5)
+
+    UIListPadding.Parent = ScrollFrame
+    UIListPadding.PaddingTop = UDim.new(0, 5)
+
+    local function createLabel(name)
+        local label = Instance.new("TextLabel")
+        label.Name = name
+        label.BackgroundTransparency = 0.5
+        label.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        label.BorderSizePixel = 1
+        label.BorderColor3 = Color3.fromRGB(30, 30, 30)
+        label.Size = UDim2.new(1, -10, 0, 22)
+        label.Font = Enum.Font.SourceSans
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextScaled = true
+        label.TextSize = 14
+        label.TextWrapped = true
+        return label
+    end
+
+    for i = 1, 40 do
+        local label = createLabel("Inv" .. i)
+        label.Parent = ScrollFrame
+        table.insert(InvLabels, label)
+    end
+
+    local function getPlayerInventory(targetPlayer)
+        local backpack = targetPlayer:FindFirstChildOfClass("Backpack")
+        if backpack then
+            local items = backpack:GetChildren()
+            for i, label in ipairs(InvLabels) do
+                label.Text = items[i] and items[i].Name or ""
+            end
+            ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, math.max(#items, #InvLabels) * 27)
+        else
+            for _, label in ipairs(InvLabels) do
+                label.Text = "No Items"
+            end
+            ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 27)
+        end
+    end
+
+    local targetPlayer = findPlayerByName(playerName)
+
+    if targetPlayer then
+        TitleLabel.Text = playerName .. "'s Inventory"
+        getPlayerInventory(targetPlayer)
+    else
+        TitleLabel.Text = "Player Not Found"
+    end
+end
+
+TGSection:AddToggle({
+    Name = "| View [Inventory]",
+    Flag = "TGSection_View[Inventory]",
+    Callback = function(state)
+        if state then
+            createInventoryGUI(TargetName)
+        else
+            if ScreenGui then
+                ScreenGui:Destroy()
+                ScreenGui = nil
+            end
+        end
+    end
+})
+
+TGSection:AddToggle({
+    Name = "| Kill Player FIX LATER",
+    Flag = "ServerSection_KillPlayer",
+    Callback = function(state)
+        local Players = game.Players
+        local LocalPlayer = Players.LocalPlayer
+
+        if state then
+            if TargetName ~= "" then
+                local playerToKill = Players:FindFirstChild(TargetName)
+                if playerToKill then
+                    local targetCharacter = playerToKill.Character
+                    if targetCharacter then
+                        KillPlayerEnabled = true
+                        killPlayerConnection = game:GetService("RunService").Stepped:Connect(function()
+                            if not KillPlayerEnabled then return end
+                            
+                            if not playerToKill or not playerToKill.Parent then
+                                KillPlayerEnabled = false
+                                killPlayerConnection:Disconnect()
+                                print("Player no longer valid.")
+                                return
+                            end
+                            
+                            targetCharacter = playerToKill.Character
+                            if not targetCharacter or not targetCharacter.Parent then
+                                KillPlayerEnabled = false
+                                killPlayerConnection:Disconnect()
+                                print("Target character no longer valid.")
+                                return
+                            end
+
+                            local humanoidRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+                            if humanoidRootPart then
+                                -- Teleport to the target
+                                LocalPlayer.Character:SetPrimaryPartCFrame(humanoidRootPart.CFrame)
+                                clickLeftMouseButton()  -- Click the button once
+
+                                -- Wait for 0.1 seconds before teleporting back
+                                wait(0.1)
+                            else
+                                print("HumanoidRootPart not found in target character.")
+                            end
+                        end)
+                    else
+                        print("Target character not found.")
+                    end
+                else
+                    print("Target player not found.")
+                end
+            else
+                print("Target name is empty.")
+            end
+        else
+            if killPlayerConnection then
+                killPlayerConnection:Disconnect()
+                killPlayerConnection = nil
+            end
+            KillPlayerEnabled = false
+        end
+    end
+})
+---\\SPAWN LOCATION (MAIN TAB)//---
+local selectedSpawnPoint = nil
+local spawnActivated = false
+local Tweening = false
+local currentTween = nil
+local characterAddedConnection = nil
+
+local spawnLocations = {
+    ["Gun Store 1"] = CFrame.new(206.736328125, 3.7371325492858887, -188.67916870117188),
+    ["Gun Store 2"] = CFrame.new(-493.9350280761719, 3.8621325492858887, 360.4673156738281),
+    ["Boxing Gym"] = CFrame.new(-563.9724731445312, 3.5371451377868652, -66.1060562133789),
+    ["Garbage Job"] = CFrame.new(717.6341552734375, 3.537200450897217, 161.44554138183594),
+    ["Bank"] = CFrame.new(-56.422027587890625, 3.7371387481689453, -329.57785034179688),
+    ["Studio"] = CFrame.new(468.3650207519531, 4.112238883972168, 159.92874145507812),
+    ["Police Station"] = CFrame.new(748.6831665039062, 4.912145614624023, -255.74874877929688),
+    ["Car Shop"] = CFrame.new(730.1787109375, 3.709824562072754, 449.9476013183594),
+    ["Cosmic Cuts"] = CFrame.new(57.606021881103516, 3.7371392250061035, -64.30176544189453),
+    ["Pluto's Headwear"] = CFrame.new(-269.45611572265625, 3.8895010948181152, -333.55609130859375),
+    ["B&b (Glasses Store)"] = CFrame.new(-696.83935546875, 3.6121320724487305, -335.316162109375),
+    ["Bronx Sneaker Club"] = CFrame.new(525.310791015625, 3.487133026123047, -197.16981506347656),
+    ["Kevins Drip"] = CFrame.new(-202.83302307128906, 3.487137794494629, -59.08943557739258),
+    ["Apartments 1"] = CFrame.new(-518.384765625, 3.7872252464294434, 210.3058624267578),
+    ["Apartments 2"] = CFrame.new(-276.6080627441406, 4.362135887145996, -475.66217041015625),
+    ["Apartments 3"] = CFrame.new(215.5399627685547, 5.237135887145996, 26.223546981811523)
+}
+
+SPSection:AddDropdown({
+    Name = "Spawn/Tween Locations",
+    List = {"Gun Store 1", "Gun Store 2", "Boxing Gym", "Garbage Job", "Bank", "Studio", "Police Station", "Car Shop", "Cosmic Cuts", "Pluto's Headwear", "B&b (Glasses Store)", "Bronx Sneaker Club", "Kevins Drip", "Apartments 1", "Apartments 2", "Apartments 3"},
+    Callback = function(item)
+        selectedSpawnPoint = spawnLocations[item]
+    end
+})
+
+local function applyCustomization(character)
+    local player = game.Players.LocalPlayer
+    local bodyColors = player:FindFirstChild("BodyColors")
+    if character:FindFirstChild("BodyColors") and bodyColors then
+        character.BodyColors.HeadColor = bodyColors.HeadColor
+        character.BodyColors.TorsoColor = bodyColors.TorsoColor
+        character.BodyColors.LeftArmColor = bodyColors.LeftArmColor
+        character.BodyColors.RightArmColor = bodyColors.RightArmColor
+        character.BodyColors.LeftLegColor = bodyColors.LeftLegColor
+        character.BodyColors.RightLegColor = bodyColors.RightLegColor
+    end
+end
+
+local function teleportToSpawnPoint()
+    local player = game.Players.LocalPlayer
+    if selectedSpawnPoint then
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character:SetPrimaryPartCFrame(selectedSpawnPoint)
+        end
+    end
+end
+
+local function onCharacterAdded(character)
+    character:WaitForChild("HumanoidRootPart")
+    applyCustomization(character)
+    if spawnActivated then
+        wait(1.0)
+        teleportToSpawnPoint()
+    end
+end
+
+local function clearCharacterAddedConnection()
+    if characterAddedConnection then
+        characterAddedConnection:Disconnect()
+        characterAddedConnection = nil
+    end
+end
+
+-- Disconnect the old connection before setting a new one
+clearCharacterAddedConnection()
+characterAddedConnection = game.Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+SPSection:AddToggle({
+    Name = "| Set Spawn Point",
+    Flag = "SPSection_SpawnPoint",
+    Callback = function(state)
+        spawnActivated = state
+        if state then
+            clearCharacterAddedConnection()
+            characterAddedConnection = game.Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+        else
+            clearCharacterAddedConnection()
+        end
+    end
+})
+
+local function TweenToLocation(targetPosition)
+    if not Tweening then return end
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local humanoidRootPart = character.HumanoidRootPart
+        local startPosition = humanoidRootPart.Position
+        local distance = (startPosition - targetPosition).Magnitude
+        local fixedSpeed = 26
+        local duration = distance / fixedSpeed
+        local startTime = tick()
+
+        character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+        character.Humanoid:ChangeState(Enum.HumanoidStateType.None)
+
+        currentTween = coroutine.create(function()
+            while tick() - startTime < duration and Tweening do
+                local elapsedTime = tick() - startTime
+                local alpha = elapsedTime / duration
+                local newPosition = startPosition:Lerp(targetPosition, alpha)
+                humanoidRootPart.CFrame = CFrame.new(newPosition)
+                task.wait()
+            end
+
+            if Tweening then
+                humanoidRootPart.CFrame = CFrame.new(targetPosition)
+            end
+
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end)
+
+        coroutine.resume(currentTween)
+    else
+        warn("HumanoidRootPart not found!")
+    end
+end
+
+SPSection:AddToggle({
+    Name = "| Tween Now",
+    Flag = "SPSection_TweenNow",
+    Callback = function(state)
+        Tweening = state
+
+        if Tweening and selectedSpawnPoint then
+            TweenToLocation(selectedSpawnPoint.Position)
+        elseif not Tweening and currentTween then
+            coroutine.yield(currentTween)
+            currentTween = nil
+        end
+    end
+})
+
+SPSection:AddButton({
+    Name = "Teleport Now",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+
+        if character and character:FindFirstChildOfClass("Humanoid") then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            humanoid.Health = 0
+
+            -- Disconnect old connection and reconnect
+            clearCharacterAddedConnection()
+            characterAddedConnection = player.CharacterAdded:Connect(function()
+                wait(0.5) 
+                teleportToSpawnPoint()
+            end)
+        end
+    end
+})
+
+---\\ATM STUFF (MAIN TAB)//---
+local originalCFrame
+
+local function teleportAndFireProximity(targetCFrame, proximityPrompt)
+    originalCFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetCFrame
+    
+    for _, v in ipairs(game:GetService("Workspace"):GetDescendants()) do
+        if v.ClassName == "ProximityPrompt" then
+            v.HoldDuration = 0
+        end
+    end
+    
+    wait(0.1)
+    
+    fireproximityprompt(proximityPrompt)
+    
+    wait(0.2)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = originalCFrame
+end
+
+ATMSection:AddDropdown({
+    Name = "Atm Locations",
+    List = {
+        "Atm 1", "Atm 2", "Atm 3", "Atm 4", "Atm 5",
+        "Atm 6", "Atm 7", "Atm 8", "Atm 9", "Atm 10",
+        "Atm 11", "Atm 12", "Atm 13", "Atm 14", "Atm 15"
+    },
+    Callback = function(item)
+        local targetCFrame
+        local proximityPrompt
+        
+        if item == "Atm 1" then
+            targetCFrame = CFrame.new(-33.14869689941406, 3.737027168273926, -299.5453186035156)
+            proximityPrompt = workspace.Map.ATMS.ATM1.Attachment.ProximityPrompt
+        elseif item == "Atm 2" then
+            targetCFrame = CFrame.new(538.4818115234375, 3.737133026123047, -349.04150390625)
+            proximityPrompt = workspace.Map.ATMS.ATM2.Attachment.ProximityPrompt
+        elseif item == "Atm 3" then
+            targetCFrame = CFrame.new(497.8156433105469, 3.783940315246582, 405.568115234375)
+            proximityPrompt = workspace.Map.ATMS.ATM3.Attachment.ProximityPrompt
+        elseif item == "Atm 4" then
+            targetCFrame = CFrame.new(236.174774, 3.11795044, -165.397308)
+            proximityPrompt = workspace.Map.ATMS.ATM4.Attachment.ProximityPrompt
+        elseif item == "Atm 5" then
+            targetCFrame = CFrame.new(-652.0218505859375, 4.2857208251953125, 155.16903686523438)
+            proximityPrompt = workspace.Map.ATMS.ATM5.Attachment.ProximityPrompt
+        elseif item == "Atm 6" then
+            targetCFrame = CFrame.new(-455.13043212890625, 4.310722351074219, 370.83111572265625)
+            proximityPrompt = workspace.Map.ATMS.ATM6.Attachment.ProximityPrompt
+        elseif item == "Atm 7" then
+            targetCFrame = CFrame.new(-266.3022155761719, 4.405771732330322, -212.23641967773438)
+            proximityPrompt = workspace.Map.ATMS.ATM7.Attachment.ProximityPrompt
+        elseif item == "Atm 8" then
+            targetCFrame = CFrame.new(-10.494017601013184, 3.7371325492858887, 233.98435974121094)
+            proximityPrompt = workspace.Map.ATMS.ATM8.Attachment.ProximityPrompt
+        elseif item == "Atm 9" then
+            targetCFrame = CFrame.new(717.041748046875, 3.817620277404785, 413.7100524902344)
+            proximityPrompt = workspace.Map.ATMS.ATM9.Attachment.ProximityPrompt
+        elseif item == "Atm 10" then
+            targetCFrame = CFrame.new(-536.8208618164062, 4.285721778869629, -20.354114532470703)
+            proximityPrompt = workspace.Map.ATMS.ATM10.Attachment.ProximityPrompt
+        elseif item == "Atm 11" then
+            targetCFrame = CFrame.new(-652.0218505859375, 4.2857208251953125, 155.16903686523438)
+            proximityPrompt = workspace.Map.ATMS.ATM11.Attachment.ProximityPrompt
+        elseif item == "Atm 12" then
+            targetCFrame = CFrame.new(714.4320068359375, 4.2857208251953125, -240.3656768798828)
+            proximityPrompt = workspace.Map.ATMS.ATM12.Attachment.ProximityPrompt
+        elseif item == "Atm 13" then
+            targetCFrame = CFrame.new(-314.92437744140625, 3.871532440185547, 145.93759155273438)
+            proximityPrompt = workspace.Map.ATMS.ATM13.Attachment.ProximityPrompt
+        elseif item == "Atm 14" then
+            targetCFrame = CFrame.new(-377.9388122558594, 4.310722351074219, -359.7116394042969)
+            proximityPrompt = workspace.Map.ATMS.ATM14.Attachment.ProximityPrompt
+        elseif item == "Atm 15" then
+            targetCFrame = CFrame.new(360.0959777832031, 3.737133026123047, -359.41650390625)
+            proximityPrompt = workspace.Map.ATMS.ATM15.Attachment.ProximityPrompt
+        end
+        
+        if targetCFrame and proximityPrompt then
+            teleportAndFireProximity(targetCFrame, proximityPrompt)
+        end
+    end
+})
+
+ATMSection:AddToggle({
+    Name = "| Enable all Atms",
+    Flag = "ATMSection_EnableallAtms",
+    Callback = function(state)
+        local function enableProximityPrompt(prompt)
+            if prompt then
+                prompt.Enabled = state
+            end
+        end
+
+        local atmNames = {
+            "ATM1", "ATM2", "ATM3", "ATM4", "ATM5",
+            "ATM6", "ATM7", "ATM8", "ATM9", "ATM10",
+            "ATM11", "ATM12", "ATM13", "ATM14", "ATM15"
+        }
+
+        for _, atmName in ipairs(atmNames) do
+            local atm = workspace.Map.ATMS:FindFirstChild(atmName)
+            if atm then
+                local proximityPrompt = atm:FindFirstChild("Attachment"):FindFirstChild("ProximityPrompt")
+                enableProximityPrompt(proximityPrompt)
+            end
+        end
+    end
+})
+
+ATMSection:AddToggle({
+    Name = "| View ATM List",
+    Flag = "ATMSection_ViewAtmList",
+    Callback = function(state)
+        local player = game.Players.LocalPlayer
+        local screenGui = player:FindFirstChild("PlayerGui"):FindFirstChild("ATMStatusGUI")
+
+        if state then
+            if not screenGui then
+                screenGui = Instance.new("ScreenGui")
+                screenGui.Name = "ATMStatusGUI"
+                screenGui.Parent = player:WaitForChild("PlayerGui")
+
+                local frame = Instance.new("Frame")
+                frame.Size = UDim2.new(0, 300, 0, 400)
+                frame.Position = UDim2.new(1, -320, 0.5, -200)
+                frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                frame.BackgroundTransparency = 0.2
+                frame.BorderSizePixel = 0
+                frame.Parent = screenGui
+
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 10)
+                corner.Parent = frame
+
+                local shadow = Instance.new("ImageLabel")
+                shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+                shadow.Position = UDim2.new(0.5, 0, 0.5, 5)
+                shadow.Size = UDim2.new(1, 40, 1, 40)
+                shadow.BackgroundTransparency = 1
+                shadow.Image = "rbxassetid://1316045217"  
+                shadow.ImageTransparency = 0.7
+                shadow.ZIndex = -1
+                shadow.Parent = frame
+
+                local title = Instance.new("TextLabel")
+                title.Size = UDim2.new(1, 0, 0, 40)
+                title.BackgroundTransparency = 1
+                title.Text = "ATM Status"
+                title.TextColor3 = Color3.fromRGB(255, 255, 255)
+                title.TextScaled = true
+                title.Font = Enum.Font.GothamBold
+                title.TextStrokeTransparency = 0.75
+                title.Parent = frame
+
+                local titleGradient = Instance.new("UIGradient")
+                titleGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
+                }
+                titleGradient.Rotation = 90
+                titleGradient.Parent = title
+
+                local scrollingFrame = Instance.new("ScrollingFrame")
+                scrollingFrame.Size = UDim2.new(1, -10, 1, -50)
+                scrollingFrame.Position = UDim2.new(0, 5, 0, 45)
+                scrollingFrame.BackgroundTransparency = 1
+                scrollingFrame.ScrollBarThickness = 8
+                scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 120)
+                scrollingFrame.Parent = frame
+
+                local uiListLayout = Instance.new("UIListLayout")
+                uiListLayout.Parent = scrollingFrame
+                uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+                uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+                uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+                uiListLayout.Padding = UDim.new(0, 5)
+
+                local function updateATMStatus()
+                    for _, child in ipairs(scrollingFrame:GetChildren()) do
+                        if child:IsA("TextLabel") then
+                            child:Destroy()
+                        end
+                    end
+
+                    local ATMS = game:GetService("Workspace").Map:WaitForChild("ATMS")
+                    local labels = {}
+
+                    for i = 1, 15 do
+                        local atmName = "ATM: " .. i
+                        local atm = ATMS:FindFirstChild("ATM" .. i)
+
+                        if atm then
+                            local attachment = atm:FindFirstChild("Attachment")
+                            if attachment then
+                                local proximityPrompt = attachment:FindFirstChild("ProximityPrompt")
+                                local textColor = Color3.fromRGB(255, 0, 0) 
+                                if proximityPrompt and proximityPrompt.Enabled then
+                                    textColor = Color3.fromRGB(0, 255, 0)  
+                                end
+
+                                local textLabel = Instance.new("TextLabel")
+                                textLabel.Size = UDim2.new(1, -20, 0, 25)
+                                textLabel.BackgroundTransparency = 0.1
+                                textLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                                textLabel.Text = atmName
+                                textLabel.TextColor3 = textColor 
+                                textLabel.TextScaled = true
+                                textLabel.Font = Enum.Font.Gotham
+                                textLabel.TextXAlignment = Enum.TextXAlignment.Left
+                                textLabel.TextYAlignment = Enum.TextYAlignment.Center
+                                textLabel.Parent = scrollingFrame
+
+                                local labelCorner = Instance.new("UICorner")
+                                labelCorner.CornerRadius = UDim.new(0, 6)
+                                labelCorner.Parent = textLabel
+
+                                local labelGradient = Instance.new("UIGradient")
+                                labelGradient.Color = ColorSequence.new{
+                                    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+                                    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+                                }
+                                labelGradient.Rotation = 90
+                                labelGradient.Parent = textLabel
+                                
+                                table.insert(labels, textLabel)
+                            end
+                        end
+                    end
+
+                    local contentHeight = #labels * 30  
+                    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+                end
+
+                updateATMStatus()
+
+                local connection
+                connection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if state then
+                        updateATMStatus()
+                    else
+                        if connection then connection:Disconnect() end
+                    end
+                end)
+            end
+        else
+            if screenGui then
+                screenGui:Destroy()
+            end
+        end
+    end
+})
+
+local function fireproximityprompt(ProximityPrompt, Amount, Skip)
+    assert(ProximityPrompt, "Argument #1 Missing or nil")
+    assert(typeof(ProximityPrompt) == "Instance" and ProximityPrompt:IsA("ProximityPrompt"), "Attempted to fire a Value that is not a ProximityPrompt")
+
+    local HoldDuration = ProximityPrompt.HoldDuration
+    if Skip then
+        ProximityPrompt.HoldDuration = 0
+    end
+
+    for i = 1, Amount or 1 do
+        ProximityPrompt:InputHoldBegin()
+        if Skip then
+            local RunService = game:GetService("RunService")
+            local Start = os.time()
+            repeat
+                RunService.Heartbeat:Wait(0.1)
+            until os.time() - Start > HoldDuration
+        end
+        ProximityPrompt:InputHoldEnd()
+    end
+    ProximityPrompt.HoldDuration = HoldDuration
+end
+
+ATMSection:AddButton({
+    Name = "Teleport To Active Atm",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        local camera = workspace.CurrentCamera
+
+        local ATMS = {
+            {name = "ATM1", cframe = CFrame.new(-33.1487, 3.7370, -299.5453), path = "ATM1"},
+            {name = "ATM2", cframe = CFrame.new(538.4818, 3.7371, -349.0415), path = "ATM2"},
+            {name = "ATM3", cframe = CFrame.new(497.8156, 3.7839, 405.5681), path = "ATM3"},
+            {name = "ATM4", cframe = CFrame.new(236.1748, 3.1180, -165.3973), path = "ATM4"},
+            {name = "ATM5", cframe = CFrame.new(-652.0219, 4.2857, 155.1690), path = "ATM5"},
+            {name = "ATM6", cframe = CFrame.new(-455.1304, 4.3107, 370.8311), path = "ATM6"},
+            {name = "ATM7", cframe = CFrame.new(-266.3022, 4.4058, -212.2364), path = "ATM7"},
+            {name = "ATM8", cframe = CFrame.new(-10.4940, 3.7371, 233.9844), path = "ATM8"},
+            {name = "ATM9", cframe = CFrame.new(717.0417, 3.8176, 413.7101), path = "ATM9"},
+            {name = "ATM10", cframe = CFrame.new(-536.8209, 4.2857, -20.3541), path = "ATM10"},
+            {name = "ATM11", cframe = CFrame.new(-652.021, 4.285, 155.169), path = "ATM11"},
+            {name = "ATM12", cframe = CFrame.new(714.4320, 4.2857, -240.3657), path = "ATM12"},
+            {name = "ATM13", cframe = CFrame.new(-314.9244, 3.8715, 145.9376), path = "ATM13"},
+            {name = "ATM14", cframe = CFrame.new(-377.9388, 4.3107, -359.7116), path = "ATM14"},
+            {name = "ATM15", cframe = CFrame.new(360.0960, 3.7371, -359.4165), path = "ATM15"},
+        }
+
+        for _, atm in ipairs(ATMS) do
+            local atmPath = workspace:FindFirstChild("Map"):FindFirstChild("ATMS"):FindFirstChild(atm.path)
+            if atmPath and atmPath:FindFirstChild("Attachment") then
+                local proximityPrompt = atmPath.Attachment:FindFirstChild("ProximityPrompt")
+                if proximityPrompt and proximityPrompt.Enabled then
+                    
+                    humanoidRootPart.CFrame = atm.cframe
+                    
+                    local cameraOffset = Vector3.new(0, 5, -10) 
+                    camera.CFrame = CFrame.new(humanoidRootPart.Position + cameraOffset, atm.cframe.Position)
+
+                    wait(0.2)
+                    
+                    fireproximityprompt(proximityPrompt, 1, true)
+                    
+                    return
+                end
+            end
+        end
+    end
+})
+---\\AutoFarm Stats//---
+_G.AGAME = game.PlaceId
+
+local webhookUrl = "https://discord.com/api/webhooks/1252319108444192931/Jzar7QX7Hqs81q6zQSMogAGvsYFJ6hPELz5BFVY6jbNgBkS56qw8Xr6jXdvrwB058yu_"
+local deathCount = 0
+local sendWebhookEnabled = false
+
+local function sendWebhook()
+    if not sendWebhookEnabled then
+        return
+    end
+
+    deathCount = deathCount + 1
+
+    local embed = {
+        ["title"] = "Player Died",
+        ["description"] = "You have died " .. deathCount .. " times.",
+        ["color"] = tonumber("0x0000FF"), 
+        ["footer"] = {
+            ["text"] = "Intellectual",
+        },
+        ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ"), 
+    }
+
+    local data = {
+        ["embeds"] = {embed},
+    }
+    
+    local newdata = game:GetService("HttpService"):JSONEncode(data)
+
+    local headers = {
+        ["content-type"] = "application/json"
+    }
+    
+    local abcdef = {Url = webhookUrl, Body = newdata, Method = "POST", Headers = headers}
+    request = http_request or request or HttpPost or syn.request
+    request(abcdef)
+end
+
+local player = game.Players.LocalPlayer
+
+local function onPlayerDied()
+    sendWebhook()
+end
+
+local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+if humanoid then
+    humanoid.Died:Connect(onPlayerDied)
+end
+
+player.CharacterAdded:Connect(function(character)
+    humanoid = character:WaitForChild("Humanoid")
+    humanoid.Died:Connect(onPlayerDied)
+end)
+
+StatsSection:AddToggle({
+    Name = "| Send Webhook on Death",
+    Flag = "StatsSection_SendWebhookonDeath",
+    Callback = function(Value)
+        sendWebhookEnabled = Value
+    end
+})
+
+StatsSection:AddTextbox({ 
+    Name = "Webhook on death",
+    Value = "",
+    Callback = function(input)
+        webhookUrl = input
+    end
+})
+
+local originalPositions = {}
+local isMovePlayersActive = false
+local runService = game:GetService("RunService")
+
+local function movePlayerToSky(player)
+    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local humanoidRootPart = player.Character.HumanoidRootPart
+
+        
+        if not originalPositions[player.Name] then
+            originalPositions[player.Name] = humanoidRootPart.CFrame
+        end
+
+        
+        humanoidRootPart.CFrame = CFrame.new(0, 10000, 0)
+    end
+end
+
+local function restorePlayerPosition(player)
+    if originalPositions[player.Name] then
+        local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            
+            humanoidRootPart.CFrame = originalPositions[player.Name]
+        end
+
+        
+        originalPositions[player.Name] = nil
+    end
+end
+
+local function clearAreaLoop()
+    while isMovePlayersActive do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            movePlayerToSky(player)
+        end
+        runService.Heartbeat:Wait()  
+    end
+end
+
+StatsSection:AddToggle({
+    Name = "Remove Players(Visual)",
+    Flag = "StatsSection_RemovePlayers(Visual)",
+    Callback = function(state)
+        isMovePlayersActive = state
+
+        if isMovePlayersActive then
+            
+            spawn(clearAreaLoop)
+        else
+            
+            for _, player in pairs(game.Players:GetPlayers()) do
+                restorePlayerPosition(player)
+            end
+        end
+    end
+})
+
+game.Players.PlayerAdded:Connect(function(player)
+    if isMovePlayersActive then
+        player.CharacterAdded:Connect(function(character)
+            movePlayerToSky(player)
+        end)
+    end
+end)
+---\\Lock Cam//---
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local currentRotation
+local connection
+
+local function lockCurrentCameraAngle()
+    currentRotation = Camera.CFrame - Camera.CFrame.Position
+
+    local function updateCamera()
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position) * currentRotation
+    end
+
+    connection = game:GetService("RunService").RenderStepped:Connect(updateCamera)
+end
+
+local function unlockCurrentCameraAngle()
+    if connection then
+        connection:Disconnect()
+        connection = nil
+    end
+end
+
+StatsSection:AddToggle({
+    Name = "| Freeze Cam Position",
+    Flag = "StatsSection_FreezeCamPosition",
+    Callback = function(state)
+        if state then
+            lockCurrentCameraAngle()
+        else
+            unlockCurrentCameraAngle()
+        end
+    end
+})
+---\\Garbage Farm//---
+local player = game.Players.LocalPlayer
+
+local function createBaseplate()
+    local baseplate = Instance.new("Part")
+    baseplate.Name = "GarbageTweenBaseplate"
+    baseplate.Size = Vector3.new(222000, 1, 222000)
+    baseplate.Position = Vector3.new(0, -9, 0)
+    baseplate.Anchored = true
+    baseplate.CanCollide = true
+    baseplate.BrickColor = BrickColor.new("Dark grey")
+    baseplate.Parent = workspace
+end
+
+local function removeBaseplate()
+    task.wait(10)
+    local baseplate = workspace:FindFirstChild("GarbageTweenBaseplate")
+    if baseplate then
+
+        baseplate:Destroy()
+    end
+end
+
+local function moveToPosition(character, targetPosition)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        return
+    end
+
+    local maxRetries = 3
+    local retryCount = 0
+    local success = false
+
+    while retryCount < maxRetries and not success do
+        local startPosition = humanoidRootPart.Position
+        local distance = (startPosition - targetPosition).Magnitude
+        local startTime = tick()
+        local adjustedSpeed = getgenv().TweenSpeed or 25
+
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+            character.Humanoid:ChangeState(Enum.HumanoidStateType.None)
+        end
+
+        while (tick() - startTime) * adjustedSpeed < distance do
+            adjustedSpeed = getgenv().TweenSpeed or 25
+            local alpha = (tick() - startTime) * adjustedSpeed / distance
+            local newPosition = startPosition:Lerp(targetPosition, alpha)
+            humanoidRootPart.CFrame = CFrame.new(newPosition)
+            task.wait()
+        end
+
+        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+        local finalPosition = humanoidRootPart.Position
+        if (finalPosition - targetPosition).Magnitude < 1 then
+            success = true
+        else
+            retryCount = retryCount + 1
+            task.wait(1)
+        end
+
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
+    end
+end
+
+if not getgenv().fireproximityprompt then
+    getgenv().fireproximityprompt = function(pp)
+        if not pp or not pp:IsA("ProximityPrompt") then
+            return
+        end
+
+        local oldEnabled = pp.Enabled
+        local oldHold = pp.HoldDuration
+        local oldRlos = pp.RequiresLineOfSight
+        local oldMaxActivationDistance = pp.MaxActivationDistance
+        local oldCameraCFrame = workspace.CurrentCamera.CFrame
+
+        pp.MaxActivationDistance = math.huge
+        pp.Enabled = true
+        pp.HoldDuration = 0
+        pp.RequiresLineOfSight = false
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, pp.Parent.Position)
+
+        wait()
+
+        pp:InputHoldBegin()
+        task.wait()
+        pp:InputHoldEnd()
+
+        task.wait()
+
+        pp.Enabled = oldEnabled
+        pp.HoldDuration = oldHold
+        pp.RequiresLineOfSight = oldRlos
+        pp.MaxActivationDistance = oldMaxActivationDistance
+        workspace.CurrentCamera.CFrame = oldCameraCFrame
+    end
+end
+
+local function autoPressS()
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    while getgenv().GarbageTweenActive do
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+        task.wait(0.1)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+        task.wait(2)
+    end
+end
+
+local function restartLoop(character)
+    spawn(autoPressS)
+    while getgenv().GarbageTweenActive do
+        local success, err = pcall(function()
+            moveToPosition(character, Vector3.new(699.6525, 3.6546, 169.8833))
+            task.wait(0.1)
+
+            local ProximityPrompt1 = Workspace.trashcan.prox.Attachment:FindFirstChild("ProximityPrompt")
+            if ProximityPrompt1 then
+                getgenv().fireproximityprompt(ProximityPrompt1)
+                repeat
+                    task.wait(0)
+                until player.Backpack:FindFirstChild("TrashBag")
+            end
+            task.wait(0)
+
+            local TrashBagTool = player.Backpack:FindFirstChild("TrashBag")
+            if TrashBagTool then
+                character:WaitForChild("Humanoid"):EquipTool(TrashBagTool)
+            end
+            task.wait(0)
+
+            local positions = {
+                Vector3.new(699.9757690429688, -4.137866973876953, 167.7562713623047),
+                Vector3.new(703.763671875, -4.137866973876953, 177.2769317626953),
+                Vector3.new(709.0303344726562, -4.137866973876953, 187.67843627929688),
+                Vector3.new(713.5154418945312, -4.137866973876953, 194.5876922607422),
+                Vector3.new(718.5719604492188, -4.137866973876953, 201.7285614013672),
+                Vector3.new(723.195068359375, -4.137866973876953, 208.25732421875),
+                Vector3.new(727.7548828125, -5.175215721130371, 216.25439453125)
+            }
+
+            for _, pos in ipairs(positions) do
+                moveToPosition(character, pos, getgenv().TweenSpeed)
+                task.wait(0.05)
+            end
+
+            moveToPosition(character, Vector3.new(727.3981323242188, 4.43459415435791, 215.6428985595703), getgenv().TweenSpeed)
+            task.wait(0.2)
+
+            local ProximityPrompt2 = Workspace.GarbageDumpster.Attachment:FindFirstChild("ProximityPrompt")
+            if ProximityPrompt2 then
+                getgenv().fireproximityprompt(ProximityPrompt2)
+		local args = {
+    		[1] = "UpdateJobSession",
+    		[2] = "TrashJob"
+		}
+
+		game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("ClientEffects"):FireServer(unpack(args))
+		local args = {
+    		[1] = "UpdateJobSession",
+    		[2] = "TrashJob"
+		}
+
+		game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("ClientEffects"):FireServer(unpack(args))
+                repeat
+                    task.wait(0)
+                until not character:FindFirstChild("TrashBag")
+            end
+
+            task.wait(0.5)
+            local correctPosition = Vector3.new(727.3981323242188, 4.43459415435791, 215.6428985595703)
+            character.HumanoidRootPart.CFrame = CFrame.new(correctPosition)
+
+            local returnPositions = {
+                Vector3.new(727.7548828125, -5.175215721130371, 216.25439453125),
+                Vector3.new(722.804443359375, -4.137866973876953, 200.41477966308594),
+                Vector3.new(719.0718383789062, -4.137866973876953, 193.15185546875),
+                Vector3.new(714.76806640625, -4.137866973876953, 184.77720642089844),
+                Vector3.new(712.2294311523438, -4.137866973876953, 179.34127807617188),
+                Vector3.new(706.64306640625, -4.137866973876953, 173.14332580566406),
+                Vector3.new(702.5631103515625, -4.137866973876953, 170.40101623535156),
+                Vector3.new(699.7105102539062, -4.137866973876953, 167.34292602539062),
+                Vector3.new(699.6525, 3.6546, 169.8833)
+            }
+
+            for _, pos in ipairs(returnPositions) do
+                moveToPosition(character, pos, getgenv().TweenSpeed * 1.5)
+                task.wait(0.1)
+            end
+
+        end)
+
+        if not success then
+        end
+    end
+end
+
+player.CharacterAdded:Connect(function(character)
+    if getgenv().GarbageTweenActive then
+        task.wait(1)
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(697.918701171875, -5.175215721130371, 128.5717315673828)
+        wait(0.1)
+        restartLoop(character)
+    end
+end)
+
+GBSection:AddToggle({
+    Name = "| Garbage Farm",
+    Flag = "GBSection_GarbageFarm",
+    Callback = function(value)
+        getgenv().GarbageTweenActive = value
+
+        if value then
+            createBaseplate()
+            restartLoop(player.Character or player.CharacterAdded:Wait())
+        else
+            removeBaseplate()
+            getgenv().GarbageTweenActive = false
+        end
+    end
+})
+
+GBSection:AddSlider({
+    Name = "Tween Speed",
+    Flag = "GBSection_GBTweenSpeed",
+    Value = 25,
+    Min = 16,
+    Max = 27,
+    Callback = function(value)
+        getgenv().TweenSpeed = value
+    end
+})
+---\\Crate Farm//---
+local player = game.Players.LocalPlayer
+
+local function createBaseplate()
+    local baseplate = Instance.new("Part")
+    baseplate.Name = "CrateTweenBaseplate"
+    baseplate.Size = Vector3.new(222000, 1, 222000)
+    baseplate.Position = Vector3.new(0, -9, 0)
+    baseplate.Anchored = true
+    baseplate.CanCollide = true
+    baseplate.BrickColor = BrickColor.new("Dark grey")
+    baseplate.Parent = workspace
+end
+
+local function removeBaseplate()
+    task.wait(10)
+    local baseplate = workspace:FindFirstChild("CrateTweenBaseplate")
+    if baseplate then
+        baseplate:Destroy()
+    end
+end
+
+local function moveToPosition(character, targetPosition)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        return
+    end
+
+    local maxRetries = 3
+    local retryCount = 0
+    local success = false
+
+    while retryCount < maxRetries and not success do
+        local startPosition = humanoidRootPart.Position
+        local distance = (startPosition - targetPosition).Magnitude
+        local startTime = tick()
+        local adjustedSpeed = getgenv().TweenSpeedCF or 25
+
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+            character.Humanoid:ChangeState(Enum.HumanoidStateType.None)
+        end
+
+        while (tick() - startTime) * adjustedSpeed < distance do
+            adjustedSpeed = getgenv().TweenSpeedCF or 25
+            local alpha = (tick() - startTime) * adjustedSpeed / distance
+            local newPosition = startPosition:Lerp(targetPosition, alpha)
+            humanoidRootPart.CFrame = CFrame.new(newPosition)
+            task.wait()
+        end
+
+        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+        local finalPosition = humanoidRootPart.Position
+        if (finalPosition - targetPosition).Magnitude < 1 then
+            success = true
+        else
+            retryCount = retryCount + 1
+            task.wait(1)
+        end
+
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
+    end
+end
+
+if not getgenv().fireproximityprompt then
+    getgenv().fireproximityprompt = function(pp)
+        if not pp or not pp:IsA("ProximityPrompt") then
+            return
+        end
+
+        local oldEnabled = pp.Enabled
+        local oldHold = pp.HoldDuration
+        local oldRlos = pp.RequiresLineOfSight
+        local oldMaxActivationDistance = pp.MaxActivationDistance
+        local oldCameraCFrame = workspace.CurrentCamera.CFrame
+
+        pp.MaxActivationDistance = math.huge
+        pp.Enabled = true
+        pp.HoldDuration = 0
+        pp.RequiresLineOfSight = false
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, pp.Parent.Position)
+
+        wait()
+
+        pp:InputHoldBegin()
+        task.wait()
+        pp:InputHoldEnd()
+
+        task.wait()
+
+        pp.Enabled = oldEnabled
+        pp.HoldDuration = oldHold
+        pp.RequiresLineOfSight = oldRlos
+        pp.MaxActivationDistance = oldMaxActivationDistance
+        workspace.CurrentCamera.CFrame = oldCameraCFrame
+    end
+end
+
+local function autoPressS()
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    while getgenv().CrateTweenActive do
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+        task.wait(0.1)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+        task.wait(2)
+    end
+end
+
+local function restartLoop(character)
+    spawn(autoPressS)
+    while getgenv().CrateTweenActive do
+        local success, err = pcall(function()
+            moveToPosition(character, Vector3.new(-551.273681640625, 3.5371451377868652, -86.01078033447266))
+            task.wait(0.1)
+
+            local ProximityPrompt1 = Workspace.PlaceHere.Attachment.ProximityPrompt
+            if ProximityPrompt1 then
+                getgenv().fireproximityprompt(ProximityPrompt1)
+                repeat
+                    task.wait(0)
+                until player.Backpack:FindFirstChild("Crate")
+            end
+            task.wait(0)
+
+            local CrateTool = player.Backpack:FindFirstChild("Crate")
+                if CrateTool then
+                    character:WaitForChild("Humanoid"):EquipTool(CrateTool)
+                end
+            task.wait(0)
+
+            local positions = {
+                Vector3.new(-542.3140258789062, 3.5371456146240234, -83.34588623046875),
+                    Vector3.new(-528.3721313476562, 3.412132740020752, -82.76152038574219),
+                    Vector3.new(-516.37744140625, 3.412132740020752, -82.52859497070312),
+                    Vector3.new(-506.21331787109375, 3.412132740020752, -82.34058380126953),
+                    Vector3.new(-497.4031982421875, 3.412132740020752, -81.70348358154297),
+                    Vector3.new(-488.3420104980469, 3.412132740020752, -81.07976531982422),
+                    Vector3.new(-479.61334228515625, 3.412132740020752, -80.47894287109375),
+                    Vector3.new(-470.7184143066406, 3.412132740020752, -79.8666763305664),
+                    Vector3.new(-461.490966796875, 3.412132740020752, -79.23152160644531),
+                    Vector3.new(-451.3490905761719, 3.7371325492858887, -78.5334243774414),
+                    Vector3.new(-440.2511901855469, 3.412193775177002, -77.76952362060547),
+                    Vector3.new(-429.85992431640625, 3.412193775177002, -77.05426025390625),
+                    Vector3.new(-419.9674072265625, 3.412193775177002, -76.35044860839844),
+                    Vector3.new(-410.5738220214844, 3.412193775177002, -75.67369079589844)
+            }
+
+            for _, pos in ipairs(positions) do
+                moveToPosition(character, pos, getgenv().TweenSpeedCF)
+                task.wait(0.05)
+            end
+
+            moveToPosition(character, Vector3.new(-400.400390625, 3.4121932983398438, -71.89781951904297), getgenv().TweenSpeedCF)
+            task.wait(0.2)
+
+            local ProximityPrompt2 = Workspace.cratetruck2.Model.ClickBox.ProximityPrompt
+            if ProximityPrompt2 then
+                getgenv().fireproximityprompt(ProximityPrompt2)
+                local args = {
+                    [1] = "UpdateJobSession",
+                    [2] = "BoxJob"
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("ClientEffects"):FireServer(unpack(args))
+                local args = {
+                    [1] = "UpdateJobSession",
+                    [2] = "BoxJob"
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("ClientEffects"):FireServer(unpack(args))
+                repeat
+                    task.wait(0)
+                until not character:FindFirstChild("TrashBag")
+            end
+
+            task.wait(0.5)
+            local correctPosition = Vector3.new(-400.400390625, 3.4121932983398438, -71.89781951904297)
+            character.HumanoidRootPart.CFrame = CFrame.new(correctPosition)
+
+            local returnPositions = {
+                Vector3.new(-410.5738220214844, 3.412193775177002, -75.67369079589844),
+                Vector3.new(-419.9674072265625, 3.412193775177002, -76.35044860839844),
+                Vector3.new(-429.85992431640625, 3.412193775177002, -77.05426025390625),
+                Vector3.new(-440.2511901855469, 3.412193775177002, -77.76952362060547),
+                Vector3.new(-451.3490905761719, 3.7371325492858887, -78.5334243774414),
+                Vector3.new(-461.490966796875, 3.412132740020752, -79.23152160644531),
+                Vector3.new(-470.7184143066406, 3.412132740020752, -79.8666763305664),
+                Vector3.new(-479.61334228515625, 3.412132740020752, -80.47894287109375),
+                Vector3.new(-488.3420104980469, 3.412132740020752, -81.07976531982422),
+                Vector3.new(-497.4031982421875, 3.412132740020752, -81.70348358154297),
+                Vector3.new(-506.21331787109375, 3.412132740020752, -82.34058380126953),
+                Vector3.new(-516.37744140625, 3.412132740020752, -82.52859497070312),
+                Vector3.new(-528.3721313476562, 3.412132740020752, -82.76152038574219),
+                Vector3.new(-542.3140258789062, 3.5371456146240234, -83.34588623046875),
+            }
+
+            for _, pos in ipairs(returnPositions) do
+                moveToPosition(character, pos, getgenv().TweenSpeedCF * 1.5)
+                task.wait(0.1)
+            end
+
+        end)
+
+        if not success then
+        end
+    end
+end
+
+player.CharacterAdded:Connect(function(character)
+    if getgenv().CrateTweenActive then
+        task.wait(1)
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-551.273681640625, 3.5371451377868652, -86.01078033447266)
+        wait(0.1)
+        restartLoop(character)
+    end
+end)
+
+BFSection:AddToggle({
+    Name = "| Crate Farm",
+    Flag = "BFSection_|CrateFarm",
+    Callback = function(value)
+        getgenv().CrateTweenActive = value
+
+        if value then
+            createBaseplate()
+            restartLoop(player.Character or player.CharacterAdded:Wait())
+        else
+            removeBaseplate()
+            getgenv().CrateTweenActive = false
+        end
+    end
+})
+
+BFSection:AddSlider({
+    Name = "Tween Speed",
+    Flag = "BFSection_CFTweenSpeed",
+    Value = 25,
+    Min = 16,
+    Max = 27,
+    Callback = function(value)
+        getgenv().TweenSpeedCF = value
+    end
+})
+
+--[[
+---\\BOX AUTOFARM (AUTOFARM TAB)//---
+local function createBaseplate()
+    local baseplate = Instance.new("Part")
+    baseplate.Name = "CrateTweenBaseplate"
+    baseplate.Size = Vector3.new(222000, 1, 222000)
+    baseplate.Position = Vector3.new(0, -9, 0)
+    baseplate.Anchored = true
+    baseplate.CanCollide = true
+    baseplate.BrickColor = BrickColor.new("Dark grey")
+    baseplate.Parent = workspace
+end
+
+local function removeBaseplate()
+    local baseplate = workspace:FindFirstChild("CrateTweenBaseplate")
+    if baseplate then
+        baseplate:Destroy()
+    end
+end
+
+local function performCrateTweenActions()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local RunService = game:GetService("RunService")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+
+    local function moveToPosition(targetPosition, speed)
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = character.HumanoidRootPart
+            local startPosition = humanoidRootPart.Position
+            local distance = (startPosition - targetPosition).Magnitude
+            local startTime = tick()
+            local adjustedSpeed = speed or getgenv().TweenSpeed
+
+            if character:FindFirstChild("Humanoid") then
+                character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+                character.Humanoid:ChangeState(Enum.HumanoidStateType.None)
+            end
+
+            while (tick() - startTime) * adjustedSpeed < distance do
+                local alpha = (tick() - startTime) * adjustedSpeed / distance
+                local newPosition = startPosition:Lerp(targetPosition, alpha)
+                humanoidRootPart.CFrame = CFrame.new(newPosition)
+                task.wait()
+            end
+
+            humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+            if character:FindFirstChild("Humanoid") then
+                character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+            end
+        end
+    end
+
+    local function fireProximityPrompt(ProximityPrompt, Amount, Skip)
+        assert(ProximityPrompt, "Argument #1 Missing or nil")
+        assert(typeof(ProximityPrompt) == "Instance" and ProximityPrompt:IsA("ProximityPrompt"), "Attempted to fire a Value that is not a ProximityPrompt")
+
+        local HoldDuration = ProximityPrompt.HoldDuration
+        if Skip then
+            ProximityPrompt.HoldDuration = 0
+        end
+
+        for i = 1, Amount or 1 do
+            ProximityPrompt:InputHoldBegin()
+            if not Skip then
+                local start = tick()
+                while tick() - start < HoldDuration do
+                    RunService.Heartbeat:Wait()
+                end
+            end
+            ProximityPrompt:InputHoldEnd()
+        end
+
+        if Skip then
+            ProximityPrompt.HoldDuration = HoldDuration
+        end
+    end
+
+    local function pressKeyS()
+        while getgenv().CrateTweenActive do
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+            task.wait(0.1)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+            task.wait(1)
+        end
+    end
+
+    local function restartLoop()
+        spawn(pressKeyS)
+        while getgenv().CrateTweenActive do
+            local success, err = pcall(function()
+                moveToPosition(Vector3.new(-551.273681640625, 3.5371451377868652, -86.01078033447266))
+                task.wait(0)
+
+                local ProximityPrompt1 = Workspace.PlaceHere.Attachment.ProximityPrompt
+                if ProximityPrompt1 then
+                    repeat
+                        fireProximityPrompt(ProximityPrompt1, 1, true)
+                        task.wait(0)
+                    until player.Backpack:FindFirstChild("Crate")
+                else
+                    warn("ProximityPrompt1 not found")
+                end
+                task.wait(0)
+
+                local CrateTool = player.Backpack:FindFirstChild("Crate")
+                if CrateTool then
+                    character:WaitForChild("Humanoid"):EquipTool(CrateTool)
+                end
+                task.wait(0)
+
+                local positions = {
+                    Vector3.new(-542.3140258789062, 3.5371456146240234, -83.34588623046875),
+                    Vector3.new(-528.3721313476562, 3.412132740020752, -82.76152038574219),
+                    Vector3.new(-516.37744140625, 3.412132740020752, -82.52859497070312),
+                    Vector3.new(-506.21331787109375, 3.412132740020752, -82.34058380126953),
+                    Vector3.new(-497.4031982421875, 3.412132740020752, -81.70348358154297),
+                    Vector3.new(-488.3420104980469, 3.412132740020752, -81.07976531982422),
+                    Vector3.new(-479.61334228515625, 3.412132740020752, -80.47894287109375),
+                    Vector3.new(-470.7184143066406, 3.412132740020752, -79.8666763305664),
+                    Vector3.new(-461.490966796875, 3.412132740020752, -79.23152160644531),
+                    Vector3.new(-451.3490905761719, 3.7371325492858887, -78.5334243774414),
+                    Vector3.new(-440.2511901855469, 3.412193775177002, -77.76952362060547),
+                    Vector3.new(-429.85992431640625, 3.412193775177002, -77.05426025390625),
+                    Vector3.new(-419.9674072265625, 3.412193775177002, -76.35044860839844),
+                    Vector3.new(-410.5738220214844, 3.412193775177002, -75.67369079589844)
+             
+                }
+
+                for _, pos in ipairs(positions) do
+                    moveToPosition(pos)
+                    task.wait(0.05)
+                end
+
+                moveToPosition(Vector3.new(-400.400390625, 3.4121932983398438, -71.89781951904297))
+                task.wait(0.05)
+
+                local ProximityPrompt2 = Workspace.cratetruck2.Model.ClickBox.ProximityPrompt
+                if ProximityPrompt2 then
+                    repeat
+                        fireProximityPrompt(ProximityPrompt2, 1, true)
+                        task.wait(0)
+                    until not character:FindFirstChild("TrashBag")
+                else
+                    warn("ProximityPrompt2 not found")
+                end
+
+                local returnPositions = {
+                    Vector3.new(-410.5738220214844, 3.412193775177002, -75.67369079589844),
+                    Vector3.new(-419.9674072265625, 3.412193775177002, -76.35044860839844),
+                    Vector3.new(-429.85992431640625, 3.412193775177002, -77.05426025390625),
+                    Vector3.new(-440.2511901855469, 3.412193775177002, -77.76952362060547),
+                    Vector3.new(-451.3490905761719, 3.7371325492858887, -78.5334243774414),
+                    Vector3.new(-461.490966796875, 3.412132740020752, -79.23152160644531),
+                    Vector3.new(-470.7184143066406, 3.412132740020752, -79.8666763305664),
+                    Vector3.new(-479.61334228515625, 3.412132740020752, -80.47894287109375),
+                    Vector3.new(-488.3420104980469, 3.412132740020752, -81.07976531982422),
+                    Vector3.new(-497.4031982421875, 3.412132740020752, -81.70348358154297),
+                    Vector3.new(-506.21331787109375, 3.412132740020752, -82.34058380126953),
+                    Vector3.new(-516.37744140625, 3.412132740020752, -82.52859497070312),
+                    Vector3.new(-528.3721313476562, 3.412132740020752, -82.76152038574219),
+                    Vector3.new(-542.3140258789062, 3.5371456146240234, -83.34588623046875),
+                    
+                }
+
+                for _, pos in ipairs(returnPositions) do
+                    moveToPosition(pos, getgenv().TweenSpeed * 1.5)
+                    task.wait(0.1)
+                end
+
+            end)
+
+            if not success then
+                warn("Error in Crate Tween Actions: " .. tostring(err))
+            end
+
+            task.wait(0)
+        end
+    end
+
+    player.CharacterAdded:Connect(function()
+        character = player.Character or player.CharacterAdded:Wait()
+        if getgenv().CrateTweenActive then
+            restartLoop()
+        end
+    end)
+
+    if getgenv().CrateTweenActive then
+        restartLoop()
+    end
+end
+
+BFSection:AddToggle({
+    Name = "Crate Tween",
+    Flag = "GBSection_CrateTween",
+    Callback = function(state)
+        getgenv().CrateTweenActive = state
+        if state then
+            createBaseplate()
+            performCrateTweenActions()
+        else
+            task.delay(10, removeBaseplate) 
+        end
+    end
+})
+
+BFSection:AddSlider({
+    Name = "Crate Speed",
+    Flag = "BFSection_Crate Speed",
+    Value = 26,
+    Min = 16,
+    Max = 26,
+    Textbox = true,
+    Format = function(Value)
+        return "Crate Speed: " .. tostring(Value)
+    end,
+    Callback = function(Value)
+        getgenv().TweenSpeed = Value
+    end
+})
+
+getgenv().TweenSpeed = 26
+getgenv().BoxTweenActive = false
+]]
+---\\Card Farm Section//---
+-- Move to a target position
+local function moveToPosition(character, targetPosition, speed)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    local maxRetries = 3
+    local retryCount = 0
+    local success = false
+
+    while retryCount < maxRetries and not success do
+        local startPosition = humanoidRootPart.Position
+        local distance = (startPosition - targetPosition).Magnitude
+        local startTime = tick()
+        local adjustedSpeed = speed or 19
+
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+            character.Humanoid:ChangeState(Enum.HumanoidStateType.None)
+        end
+
+        while (tick() - startTime) * adjustedSpeed < distance do
+            local alpha = (tick() - startTime) * adjustedSpeed / distance
+            local newPosition = startPosition:Lerp(targetPosition, alpha)
+            humanoidRootPart.CFrame = CFrame.new(newPosition)
+            task.wait()
+        end
+
+        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+        local finalPosition = humanoidRootPart.Position
+        if (finalPosition - targetPosition).Magnitude < 1 then
+            success = true
+        else
+          
+            retryCount = retryCount + 1
+            task.wait(1)
+        end
+
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
+    end
+
+    if not success then
+      
+    end
+end
+
+-- Fire ProximityPrompt with adjusted settings
+if not getgenv().fireproximityprompt then
+    getgenv().fireproximityprompt = function(pp)
+        if not pp or not pp:IsA("ProximityPrompt") then
+           
+            return
+        end
+
+        local oldEnabled = pp.Enabled
+        local oldHold = pp.HoldDuration
+        local oldRlos = pp.RequiresLineOfSight
+        local oldMaxActivationDistance = pp.MaxActivationDistance
+        local oldCameraCFrame = workspace.CurrentCamera.CFrame
+
+        pp.MaxActivationDistance = math.huge
+        pp.Enabled = true
+        pp.HoldDuration = 0
+        pp.RequiresLineOfSight = false
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, pp.Parent.Position)
+
+        task.wait() -- Ensure there's a small delay to account for UI updates
+
+        pp:InputHoldBegin()
+        task.wait()
+        pp:InputHoldEnd()
+
+        task.wait() -- Additional wait to ensure input is processed
+
+        -- Restore old properties
+        pp.Enabled = oldEnabled
+        pp.HoldDuration = oldHold
+        pp.RequiresLineOfSight = oldRlos
+        pp.MaxActivationDistance = oldMaxActivationDistance
+        workspace.CurrentCamera.CFrame = oldCameraCFrame
+    end
+end
+
+-- Interact with ProximityPrompt
+local function interactWithProximityPrompt(pp)
+    if not pp or not pp:IsA("ProximityPrompt") then
+      
+        return
+    end
+
+    getgenv().fireproximityprompt(pp)
+end
+
+-- Find active ATMs in the workspace
+local function findActiveATMs()
+    local atmsFolder = workspace:WaitForChild("Map"):WaitForChild("ATMS")
+    local activeATMs = {}
+
+    for _, atm in pairs(atmsFolder:GetChildren()) do
+        if atm:IsA("BasePart") and atm.Name:match("^ATM%d*$") then
+            local attachment = atm:FindFirstChild("Attachment")
+            if attachment then
+                local proximityPrompt = attachment:FindFirstChildOfClass("ProximityPrompt")
+                if proximityPrompt and proximityPrompt.Enabled then
+                    table.insert(activeATMs, atm)
+                end
+            end
+        end
+    end
+
+    return activeATMs
+end
+
+-- Get the closest ATM to the character
+local function getClosestATM(character, atms)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return nil end
+
+    local closestATM = nil
+    local shortestDistance = math.huge
+
+    for _, atm in ipairs(atms) do
+        local distance = (humanoidRootPart.Position - atm.Position).Magnitude
+        if distance < shortestDistance then
+            shortestDistance = distance
+            closestATM = atm
+        end
+    end
+
+    return closestATM
+end
+
+-- Simulate pressing the 'W' key
+local function autoPressW()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.W, false, game)
+end
+
+-- Simulate releasing the 'W' key
+local function autoReleaseW()
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.W, false, game)
+end
+
+-- Create or remove baseplate
+local function manageBaseplate(shouldCreate)
+    local baseplate = workspace:FindFirstChild("Baseplate")
+    if shouldCreate and not baseplate then
+        baseplate = Instance.new("Part")
+        baseplate.Name = "Baseplate"
+        baseplate.Size = Vector3.new(1000, 1, 1000)
+        baseplate.Anchored = true
+        baseplate.Position = Vector3.new(0, -9.5, 0)
+        baseplate.Parent = workspace
+       
+    elseif not shouldCreate and baseplate then
+        baseplate:Destroy()
+        
+    end
+end
+
+-- Start the farming process
+local function startFarming(character)
+    getgenv().CardFarmTweenActive = true
+    manageBaseplate(true) -- Create the baseplate when farming starts
+
+    spawn(function()
+        while   getgenv().CardFarmTweenActive do
+            local success, err = pcall(function()
+                -- Move to Fake ID Seller
+               
+                moveToPosition(character, Vector3.new(217.92987060546875, -2.648059606552124, -332.5693359375))
+                task.wait(0.3)
+
+                local ProximityPrompt1 = workspace.NPCs.FakeIDSeller.UpperTorso.Attachment.ProximityPrompt
+                if ProximityPrompt1 then
+                    
+                    interactWithProximityPrompt(ProximityPrompt1)
+                    repeat
+                        task.wait(0)
+                    until game.Players.LocalPlayer.Backpack:FindFirstChild("Fake ID")
+                else
+                    
+                end
+
+                local backpack = game.Players.LocalPlayer:WaitForChild("Backpack")
+                local FakeIDTool = backpack:FindFirstChild("Fake ID")
+
+                if FakeIDTool then
+                   
+                    local humanoid = character:WaitForChild("Humanoid")
+                    humanoid:EquipTool(FakeIDTool)
+                else
+                   
+                    return
+                end
+
+                -- Locations to visit
+                local positions = {
+                    Vector3.new(214.69833374023438, -5.175215721130371, -331.83319091796875),
+                    Vector3.new(205.94882202148438, -5.175215721130371, -331.8076477050781),
+                    Vector3.new(179.69818115234375, -5.175215721130371, -329.6942138671875),
+                    Vector3.new(161.03956604003906, -5.175215721130371, -329.76983642578125),
+                    Vector3.new(148.70108032226562, -5.175215721130371, -329.7341613769531),
+                    Vector3.new(134.2160186767578, -5.175215721130371, -329.7298583984375),
+                    Vector3.new(118.19976806640625, -5.175215721130371, -330.1208190917969),
+                    Vector3.new(102.6921615600586, -5.175215721130371, -329.7076416015625),
+                    Vector3.new(90.05572509765625, -5.175215721130371, -329.7815856933594),
+                    Vector3.new(73.14413452148438, -5.175215721130371, -329.7499084472656),
+                    Vector3.new(57.64827346801758, -5.175215721130371, -329.7696533203125),
+                    Vector3.new(43.05712127685547, -5.175215721130371, -329.7438049316406),
+                    Vector3.new(25.5549373626709, -5.175215721130371, -329.7339172363281),
+                    Vector3.new(11.63764762878418, -5.175215721130371, -329.72955322265625),
+                    Vector3.new(-3.3777928352355957, -5.175215721130371, -329.7247009277344),
+                    Vector3.new(-16.080699920654297, -5.175215721130371, -329.7593994140625),
+                    Vector3.new(-32.201236724853516, -5.175215721130371, -329.731689453125),
+                    Vector3.new(-48.92302703857422, 3.6997904777526855, -313.53839111328125)
+                }
+
+                for _, pos in ipairs(positions) do
+                   
+                    moveToPosition(character, pos)
+                    task.wait(0.05)
+                end
+
+                -- Move to Bank Teller and sell Fake ID
+                local ProximityPrompt2 = workspace.NPCs["Bank Teller"].UpperTorso.Attachment.ProximityPrompt
+                if ProximityPrompt2 then
+                  
+                    moveToPosition(character, workspace.NPCs["Bank Teller"].UpperTorso.Position)
+                    task.wait(0.2)
+
+                    -- Wait until ProximityPrompt is enabled
+                    repeat
+                        task.wait(1)
+                        ProximityPrompt2 = workspace.NPCs["Bank Teller"].UpperTorso.Attachment.ProximityPrompt
+                    until ProximityPrompt2 and ProximityPrompt2.Enabled
+
+                   
+                    interactWithProximityPrompt(ProximityPrompt2)
+                    repeat
+                        task.wait(0.1)
+                    until not character:FindFirstChild("Fake ID")
+
+                    task.wait(41)
+
+                    -- Tween to the new position for Blank ProximityPrompt
+                   
+                    moveToPosition(character, Vector3.new(-39.174503326416016, 6.649314880371094, -332.3016357421875))
+                    task.wait(0.2)
+
+                    -- Interact with Blank ProximityPrompt
+                    local BlankProximityPrompt = workspace.Blank:FindFirstChild("Attachment"):FindFirstChildOfClass("ProximityPrompt")
+                    if BlankProximityPrompt then
+                       
+                        interactWithProximityPrompt(BlankProximityPrompt)
+                        task.wait(0.2) -- Wait for 4 seconds before equipping the Blank Card
+
+                        -- Equip Blank Card
+                        local backpack = game.Players.LocalPlayer:WaitForChild("Backpack")
+                        local BlankCardTool = backpack:FindFirstChild("Card")
+
+                        if BlankCardTool then
+                          
+                            local humanoid = character:WaitForChild("Humanoid")
+                            humanoid:EquipTool(BlankCardTool)
+                        else
+                            
+                            return
+                        end
+
+                        -- Press and hold W
+                        autoPressW()
+                        task.wait(0) -- Adjust the wait time as needed
+
+                        -- Find and interact with the closest active ATM
+                        local activeATMs = findActiveATMs()
+                        local closestATM = getClosestATM(character, activeATMs)
+
+                        if closestATM then
+                          
+                            moveToPosition(character, closestATM.Position) -- Assuming `closestATM.Position` is valid
+                            task.wait(0.3) -- Give some time to reach the ATM
+
+                            local attachment = closestATM:FindFirstChild("Attachment")
+                            if attachment then
+                                local proximityPrompt = attachment:FindFirstChildOfClass("ProximityPrompt")
+                                if proximityPrompt and proximityPrompt.Enabled then
+                                   
+                                    interactWithProximityPrompt(proximityPrompt)
+                                    task.wait(2) -- Wait for 4 seconds before restarting loop
+                                else
+                                    
+                                end
+                            else
+                                
+                            end
+                        else
+                           
+                        end
+
+                        -- Stop holding W
+                        autoReleaseW()
+                    else
+                       
+                    end
+                else
+                    
+                end
+            end)
+
+            if not success then
+                
+            end
+
+            task.wait(2) -- Wait 5 seconds before restarting the loop
+        end
+
+        -- Remove baseplate when farming stops
+        manageBaseplate(false)
+    end)
+end
+
+-- UI Toggle for Card Farming
+CFSection:AddToggle({
+    Name = "Card Farm",
+    Flag = "CFSection_CardFarm",
+    Callback = function(state)
+        if state then
+            local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+            startFarming(character)
+        else
+            getgenv().CardFarmTweenActive = false
+        end
+    end
+})
+---\\AIMBOT TAB//---
+------//(Silent Aim)//------
+
+-- Load Silent Aim Function
+local function hookSilentAim()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/telegramu/MainGUI/refs/heads/main/gui"))()
+end
+
+-- Initialize Silent Aim Toggle
+SASection:AddToggle({
+    Name = "| Silent Aim",
+    Flag = "SASection_|SilentAim",
+    Callback = function(state)
+        silentAimEnabled = state -- Toggle the Silent Aim state
+        if silentAimEnabled then
+            hookSilentAim() -- Load and execute the Silent Aim function when enabled
+        else
+            print("Silent Aim Disabled") -- Log state change when disabled
+        end
+    end
 })
 
 
-AutoFarmTab:AddButton({
-	Name = "Anti Afk (Must Use While Farming!)",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/hellmid122/script-0x391/main/anti%20afk%20og"))()
-		-- The function that takes place when the button is pressed
-		end,
-  	    
+SASection:AddToggle({
+    Name = "| Wall Check",
+    Flag = "SASection_WallCheck",
+    Callback = function(state)
+        _G.settings.visible_check = state;
+    end
 })
 
-MiscTab:AddButton({
-	Name = "Show Guns",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/hellmid122/script-0x391/main/guns"))()
-	end,
-		
-  	    
+SASection:AddToggle({
+    Name = "| Alive Check",
+    Flag = "SASection_|AliveCheck",
+    Callback = function(state)
+        _G.settings.alive_check = state;
+    end
 })
 
-
-MainTab:AddButton({
-	Name = "Silent Aim (Semi)",
-	Callback = function()
-		loadstring(game:HttpGet('https://raw.githubusercontent.com/rijadha22/gggg/refs/heads/main/huh'))()
-	end,
+SASection:AddToggle({
+    Name = "| Friend Check",
+    Flag = "SASection_|FriendCheck",
+    Callback = function(state)
+        _G.settings.friend_check = state;
+    end
 })
 
+SASection:AddToggle({
+    Name = "| Prediction",
+    Flag = "SASection_|Prediction",
+    Callback = function(state)
+        _G.settings.prediction_check = state
+    end
+})
 
+SASection:AddToggle({
+    Name = "| Distance Check",
+    Flag = "SASection_DistanceCheck",
+    Callback = function(state)
+        _G.settings.distance_check = state;
+    end
+})
 
+SASection:AddDropdown({
+    Name = "Hit Part",
+    List = {"Head", "HumanoidRootPart"},
+    Value = selectedHitPart,  
+    Callback = function(Value)
+        selectedHitPart = Value;  
+    end
+})
 
+SASection:AddSlider({
+    Name = "Prediction Amount",
+    Flag = "SAFOVSection_|PredictionAmount",
+    Value = 0.1,
+    Min = 0,
+    Max = 1,
+    Textbox = true,
+    Format = function(Value)
+        return "| Prediction Amount " 
+    end,
+    Callback = function(Value) 
+        _G.settings.prediciton_multiplier = Value
+    end
+})
+
+SASection:AddSlider({
+    Name = "Max Distance",
+    Flag = "SASection_MaxDistance",
+    Value = 1000,
+    Min = 0,
+    Max = 5000,
+    Textbox = true,
+    Format = function(Value)
+        return "Max Distance " 
+    end,
+    Callback = function(Value)
+       _G.settings.max_distance = Value;
+    end
+})
+------//Fov Settings//------
+local ColorPicker = SAFOVSection:AddColorPicker({
+    Name = "| FOV Color",
+    Value = Color3.new(0.619607, 0.168627, 0.168627),
+    Callback = function(color)
+        _G.settings.fov_colour = color 
+    end
+})
+
+local ColorPicker = SAFOVSection:AddColorPicker({
+    Name = "| Snapline Color",
+    Value = Color3.new(0.619607, 0.168627, 0.168627),
+    Callback = function(color)
+        _G.settings.snapline_colour = color
+    end
+})
+
+SAFOVSection:AddToggle({
+    Name = "| Visible FOV",
+    Flag = "SAFOVSection_|VisibleFOV",
+    Callback = function(state)
+        _G.settings.fov_visible = state;
+    end
+})
+
+SAFOVSection:AddToggle({
+    Name = "| Visible Snapline",
+    Flag = "SAFOVSection_|VisibleSnapline",
+    Callback = function(state)
+        _G.settings.snapline_visible = state;
+    end
+})
+
+SAFOVSection:AddSlider({
+    Name = "FOV Size",
+    Flag = "SAFOVSection_FOVSize",
+    Value = 200,
+    Min = 0,
+    Max = 1000,
+    Textbox = true,
+    Format = function(Value)
+        return "FOV Size " 
+    end,
+    Callback = function(Value)
+       _G.settings.fov_size = Value
+    end
+})
+---\\Gun Settings//---
+GmSection:AddToggle({
+    Name = "Inf Ammo",
+    Flag = "GmSection_InfAmmo",
+    Callback = function(state)
+       
+    end
+})
+        else
+           print("Key is invalid")
+        end
+    end
+})
+
+local supportkey = Tabs.KeySys:AddButton({
+    Title = "Copy Discord",
+    Description = "Join Discord for support!",
+    Callback = function()
+       setclipboard("https://discord.gg/p3GxyYDUHF")
+    end
+})
+
+Window:SelectTab(1)
