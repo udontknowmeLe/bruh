@@ -99,10 +99,10 @@ local Tweenlocations = {
 local library = loadstring(game:HttpGet("https://pastebin.com/raw/wNq1fHqi"))()
 local Wait = library.subs.Wait
 local Intellectual = library:CreateWindow({
-    Name = "Yero.cc | South Bronx",
+    Name = "Killa.Lol | South Bronx",
     Themeable = {
         Image = "7059346386",
-        Info = "Made by xferq .gg/rKqMDRPKZw",
+        Info = "Made by: BadnanaX",
         Credit = true
     },
     Background = "rbxassetid://18239728064",
@@ -3208,18 +3208,3 @@ GmSection:AddToggle({
        
     end
 })
-        else
-           print("Key is invalid")
-        end
-    end
-})
-
-local supportkey = Tabs.KeySys:AddButton({
-    Title = "Copy Discord",
-    Description = "Join Discord for support!",
-    Callback = function()
-       setclipboard("https://discord.gg/rKqMDRPKZw")
-    end
-})
-
-Window:SelectTab(1)
