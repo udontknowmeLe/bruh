@@ -4,7 +4,6 @@ setfpscap(360)
 -----//walkspeed bypass//------
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-n
 local lastWalkspeed = 16 
 
 local function setWalkSpeed(speed)
